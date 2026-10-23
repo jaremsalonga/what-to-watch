@@ -13,19 +13,11 @@ import { ApiError, BusyError, OfflineError, Api } from '../core/api';
 import { LANGUAGES, MOODS, MOVIE_GENRES, RELEASES, TIMES } from '../core/moods';
 import { NothingFound, Picker } from '../core/picker';
 import { Sound } from '../core/sound';
-import { AppState, type Stub } from '../core/state';
-import type {
-  Genre,
-  Mood,
-  ReleasePreset,
-  Title,
-  TitleDetails,
-  TimeChoice,
-  TypeChoice,
-} from '../core/types';
+import { AppState } from '../core/state';
+import type { Genre, Mood, ReleasePreset, TimeChoice, TypeChoice } from '../core/types';
 import { FilmStrip } from '../film-strip/film-strip';
-import { Share } from '../share/share';
 import { Ticket } from '../ticket/ticket';
+import { TicketDesk } from '../ticket/ticket-desk';
 
 /** One active "refine" filter, shown as a removable chip under the quick filters. */
 interface ActiveFilter {
@@ -45,7 +37,6 @@ export class Booth implements OnInit, OnDestroy {
   protected readonly sound = inject(Sound);
   private readonly api = inject(Api);
   private readonly picker = inject(Picker);
-  private readonly share = inject(Share);
   private readonly strip = viewChild.required(FilmStrip);
   private readonly sheet = viewChild.required<ElementRef<HTMLDialogElement>>('sheet');
   private readonly reveal = viewChild.required<ElementRef<HTMLDialogElement>>('reveal');
@@ -65,12 +56,9 @@ export class Booth implements OnInit, OnDestroy {
   protected readonly showTicket = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly busyFor = signal(0);
-  /** The ticket's details couldn't be loaded, so it offers a retry instead of "Checking…". */
-  protected readonly detailsFailed = signal(false);
-  private loadingDetails = false;
+  protected readonly desk = inject(TicketDesk);
   private destroyed = false;
   /** "Roll again" on a hidden gem rolls another hidden gem. */
-  private lastWasSurprise = false;
   private busyTimer: ReturnType<typeof setInterval> | null = null;
 
   protected readonly f = this.state.filters;
@@ -153,6 +141,12 @@ export class Booth implements OnInit, OnDestroy {
       .genres('movie')
       .then((r) => r.genres.length && this.genreList.set(r.genres))
       .catch(() => undefined);
+    // "Roll again" on a ticket shown away from the booth: roll as soon as the projector is ready.
+    const request = this.desk.rollRequest();
+    if (request !== null) {
+      this.desk.rollRequest.set(null);
+      setTimeout(() => this.roll(request));
+    }
   }
 
   ngOnDestroy() {
@@ -247,7 +241,7 @@ export class Booth implements OnInit, OnDestroy {
     const d = this.reveal().nativeElement;
     if (!d.open) d.showModal();
     this.showTicket.set(true);
-    if (!this.rolling() && !this.last()?.details) void this.retryDetails();
+    if (!this.rolling() && !this.last()?.details) void this.desk.retryDetails();
   }
   protected closeTicket() {
     const d = this.reveal().nativeElement;
@@ -260,7 +254,7 @@ export class Booth implements OnInit, OnDestroy {
     this.closeTicket();
     this.message.set(null);
     this.rolling.set(true);
-    this.lastWasSurprise = surprise;
+    this.desk.lastWasSurprise = surprise;
     this.sound.startMusic();
     this.sound.boost(true);
     try {
@@ -270,21 +264,18 @@ export class Booth implements OnInit, OnDestroy {
       );
       if (this.destroyed) return;
       const w = result.winner;
-      const details = this.fetchDetails(w);
+      const details = this.desk.fetchDetails(w);
       await this.strip().run(result.reel, () => {
         if (this.destroyed) return;
         this.sound.tick();
         navigator.vibrate?.(4);
       });
       this.sound.boost(false);
-      // Left the booth mid-roll: keep the pick as "Last ticket", without the bell or the pop-up.
-      if (!this.destroyed) {
-        this.sound.ding();
-        navigator.vibrate?.([20, 40, 30]);
-      }
+      this.sound.ding();
+      navigator.vibrate?.([20, 40, 30]);
       const number = this.state.pulls() + 1;
       this.state.pulls.set(number);
-      this.detailsFailed.set(false);
+      this.desk.detailsFailed.set(false);
       this.state.last.set({
         title: w,
         details: null,
@@ -293,8 +284,10 @@ export class Booth implements OnInit, OnDestroy {
         number,
       });
       this.api.event('pull');
-      if (!this.destroyed) this.openTicket();
-      this.applyDetails(w, await details);
+      // Left the booth mid-roll: the app shows the ticket over whatever page is open.
+      if (this.destroyed) this.desk.away.set(true);
+      else this.openTicket();
+      this.desk.applyDetails(w, await details);
     } catch (e) {
       this.sound.boost(false);
       this.showError(e);
@@ -303,47 +296,8 @@ export class Booth implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Where it streams, for the ticket. The pull just used up part of the per-second limit, so a
-   * "busy" answer waits and tries again, and any other failure gets one more try.
-   */
-  private async fetchDetails(w: Title): Promise<TitleDetails | null> {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        return await this.api.title(w.type, w.id, this.state.region());
-      } catch (e) {
-        if (e instanceof OfflineError || (e instanceof ApiError && e.status === 400)) break;
-        const wait = e instanceof BusyError ? e.retryAfter * 1000 : 1200;
-        await new Promise((r) => setTimeout(r, Math.min(wait, 4000)));
-      }
-    }
-    return null;
-  }
-
-  private applyDetails(w: Title, d: TitleDetails | null) {
-    const cur = this.state.last();
-    if (!cur || cur.title.id !== w.id || cur.title.type !== w.type) return;
-    if (d) {
-      this.detailsFailed.set(false);
-      this.state.last.set({ ...cur, details: d });
-    } else this.detailsFailed.set(true);
-  }
-
-  /** "Try again" on the ticket, or a saved ticket reopened before its details arrived. */
-  protected async retryDetails() {
-    const l = this.last();
-    if (!l || l.details || this.loadingDetails) return;
-    this.loadingDetails = true;
-    this.detailsFailed.set(false);
-    try {
-      this.applyDetails(l.title, await this.fetchDetails(l.title));
-    } finally {
-      this.loadingDetails = false;
-    }
-  }
-
   protected again() {
-    this.roll(this.lastWasSurprise);
+    this.roll(this.desk.lastWasSurprise);
   }
 
   private showError(e: unknown) {
@@ -378,42 +332,12 @@ export class Booth implements OnInit, OnDestroy {
   }
 
   protected skip() {
-    const l = this.last();
-    if (l) this.picker.skipped.add(`${l.title.type}:${l.title.id}`);
+    this.desk.skip();
     this.again();
   }
   protected seen() {
-    const l = this.last();
-    if (!l) return;
-    this.state.markSeen(stub(l.title));
-    this.api.event('seen');
+    if (!this.last()) return;
+    this.desk.seen();
     this.again();
   }
-  protected shareTicket() {
-    const l = this.last();
-    if (!l) return;
-    const d = l.details;
-    this.share.open({
-      id: l.title.id,
-      type: l.title.type,
-      title: l.title.title,
-      poster: d?.poster ?? l.title.poster,
-      year: d?.year ?? l.title.year,
-      rating: d?.rating ?? l.title.rating,
-      genres: d?.genres,
-    });
-  }
-  protected later() {
-    const l = this.last();
-    if (l) this.state.toggleLater(stub(l.title));
-  }
 }
-
-const stub = (t: Title): Stub => ({
-  id: t.id,
-  type: t.type,
-  title: t.title,
-  poster: t.poster,
-  year: t.year,
-  at: Date.now(),
-});

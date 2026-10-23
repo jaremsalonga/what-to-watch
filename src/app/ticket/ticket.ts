@@ -29,6 +29,20 @@ export class Ticket {
   readonly retry = output<void>();
 
   protected readonly expanded = signal(false);
+  protected readonly today = new Date().toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+  protected readonly serial = computed(() => this.number().toString().padStart(4, '0'));
+  /** Barcode bar widths, derived from the title id so each ticket prints its own. */
+  protected readonly bars = computed(() => {
+    let x = this.title().id * 2654435761;
+    return Array.from({ length: 28 }, () => {
+      x = (x * 1103515245 + 12345) % 2147483648;
+      return 1 + (x % 3);
+    });
+  });
   protected readonly posterFailed = signal(false);
   protected readonly poster = computed(() =>
     this.posterFailed() ? null : POSTER(this.details()?.poster ?? this.title().poster, 'w342'),

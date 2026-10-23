@@ -6,10 +6,11 @@ import { AppState } from './core/state';
 import { Sound } from './core/sound';
 import { Onboarding } from './onboarding/onboarding';
 import { ShareCard } from './share/share-card';
+import { AwayTicket } from './ticket/away-ticket';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Onboarding, ShareCard],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Onboarding, ShareCard, AwayTicket],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -35,15 +36,16 @@ export class App {
 
   constructor() {
     // Browsers only allow audio after a tap, so the lobby music starts on the first one,
-    // anywhere in the app, and then keeps playing in the background.
+    // anywhere in the app, and then keeps playing in the background. iOS only counts some
+    // gestures (touchend and click, not touchstart), so listen to all of them until it plays.
     if (typeof document === 'undefined') return;
+    const events = ['pointerup', 'touchend', 'click', 'keydown'];
     const start = () => {
       if (this.isAdmin()) return;
-      this.sound.startMusic();
-      document.removeEventListener('pointerdown', start, true);
-      document.removeEventListener('keydown', start, true);
+      this.sound.unlock();
+      if (this.sound.running || this.sound.muted())
+        for (const e of events) document.removeEventListener(e, start, true);
     };
-    document.addEventListener('pointerdown', start, true);
-    document.addEventListener('keydown', start, true);
+    for (const e of events) document.addEventListener(e, start, true);
   }
 }

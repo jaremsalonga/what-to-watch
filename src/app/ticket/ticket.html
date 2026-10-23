@@ -1,47 +1,55 @@
-<article class="ticket-card" aria-live="polite">
-  <div class="head">
-    <span class="label">{{ surprise() ? 'Hidden gem' : "Tonight's pick" }}</span>
-    <span class="label">No. {{ number().toString().padStart(4, '0') }}</span>
-  </div>
+<article class="ticket" aria-live="polite" [attr.aria-label]="'Ticket for ' + title().title">
+  <section class="main">
+    <header class="head">
+      <span class="admit">Admit one</span>
+      <span class="serial">No. {{ serial() }}</span>
+    </header>
+    <p class="kicker">
+      <span>{{ surprise() ? 'Hidden gem' : cinemas() ? 'Now showing' : "Tonight's pick" }}</span>
+      <span>{{ today }}</span>
+    </p>
 
-  <div class="body">
-    @if (poster(); as src) {
-      <img
-        class="poster"
-        [src]="src"
-        [alt]="'Poster for ' + title().title"
-        width="104"
-        height="156"
-        (error)="posterFailed.set(true)"
-      />
-    } @else {
-      <div class="poster blank" aria-hidden="true">{{ title().title }}</div>
-    }
-    <div class="info">
-      <h2>{{ title().title }}</h2>
-      <p class="meta">{{ meta() }}</p>
-      @if (details()?.genres?.length) {
-        <p class="genres">{{ details()!.genres.slice(0, 3).join(', ') }}</p>
+    <div class="body">
+      @if (poster(); as src) {
+        <img
+          class="poster"
+          [src]="src"
+          [alt]="'Poster for ' + title().title"
+          width="104"
+          height="156"
+          (error)="posterFailed.set(true)"
+        />
+      } @else {
+        <div class="poster blank" aria-hidden="true">{{ title().title }}</div>
+      }
+      <div class="info">
+        <h2>{{ title().title }}</h2>
+        <p class="meta">{{ meta() }}</p>
+        @if (details()?.genres?.length) {
+          <p class="genres">{{ details()!.genres.slice(0, 3).join(' · ') }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="synopsis">
+      <p [class.clamped]="!expanded()">{{ overview() }}</p>
+      @if (overview().length > 160) {
+        <button
+          type="button"
+          class="link"
+          (click)="expanded.set(!expanded())"
+          [attr.aria-expanded]="expanded()"
+        >
+          {{ expanded() ? 'Show less' : 'Read more' }}
+        </button>
       }
     </div>
-  </div>
+  </section>
 
-  <div class="synopsis">
-    <span class="label">Synopsis</span>
-    <p [class.clamped]="!expanded()">{{ overview() }}</p>
-    @if (overview().length > 160) {
-      <button
-        type="button"
-        class="link"
-        (click)="expanded.set(!expanded())"
-        [attr.aria-expanded]="expanded()"
-      >
-        {{ expanded() ? 'Show less' : 'Read more' }}
-      </button>
-    }
-  </div>
+  <!-- The perforation: a dashed tear line with a notch cut out of each edge. -->
+  <div class="perf" aria-hidden="true"></div>
 
-  <div class="stub-row">
+  <section class="stub">
     <div class="where">
       @if (cinemas()) {
         <span class="label">Showing in cinemas</span>
@@ -89,39 +97,40 @@
           </p>
         }
       }
+      @if (primary(); as p) {
+        <a class="ink-btn" [href]="p.href" target="_blank" rel="noopener noreferrer">{{
+          p.label
+        }}</a>
+      }
+      <div class="barcode" aria-hidden="true">
+        @for (w of bars(); track $index) {
+          <i [style.flex-grow]="w"></i>
+        }
+      </div>
     </div>
-    <div class="stub" aria-hidden="true">
+    <div class="holder" aria-hidden="true">
       <span>{{ name() || 'Tonight' }}</span>
     </div>
-  </div>
-
-  <div class="actions">
-    @if (primary(); as p) {
-      <a class="btn" [href]="p.href" target="_blank" rel="noopener noreferrer">{{ p.label }}</a>
-    }
-    <button type="button" class="btn share" (click)="share.emit()">Share a story</button>
-    <div class="row">
-      @if (trailer(); as href) {
-        <a class="btn ghost" [href]="href" target="_blank" rel="noopener noreferrer"
-          >Watch trailer</a
-        >
-      }
-      <button
-        type="button"
-        class="btn ghost"
-        (click)="later.emit()"
-        [attr.aria-pressed]="isLater()"
-      >
-        {{ isLater() ? 'Saved for later' : 'Save for later' }}
-      </button>
-    </div>
-    <div class="row small">
-      <button type="button" class="text" (click)="seen.emit()">Seen it · tear stub</button>
-      <button type="button" class="text" (click)="skip.emit()">Not this one</button>
-      <button type="button" class="text strong" (click)="again.emit()">Roll again ↻</button>
-    </div>
-  </div>
-  @if (!cinemas()) {
-    <p class="credit">Streaming data by JustWatch</p>
-  }
+  </section>
 </article>
+
+@if (!cinemas()) {
+  <p class="credit">Streaming data by JustWatch</p>
+}
+
+<div class="actions">
+  <button type="button" class="btn" (click)="share.emit()">Share a story</button>
+  <div class="row">
+    @if (trailer(); as href) {
+      <a class="btn ghost" [href]="href" target="_blank" rel="noopener noreferrer">Watch trailer</a>
+    }
+    <button type="button" class="btn ghost" (click)="later.emit()" [attr.aria-pressed]="isLater()">
+      {{ isLater() ? 'Saved for later ✓' : 'Save for later' }}
+    </button>
+  </div>
+  <div class="row text-row">
+    <button type="button" class="text" (click)="seen.emit()">Seen it · tear stub</button>
+    <button type="button" class="text" (click)="skip.emit()">Not this one</button>
+    <button type="button" class="text strong" (click)="again.emit()">Roll again ↻</button>
+  </div>
+</div>
