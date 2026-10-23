@@ -18,12 +18,15 @@ export class Ticket {
   readonly surprise = input(false);
   readonly isLater = input(false);
   readonly number = input(1);
+  /** Details failed to load: offer a retry and TMDB's page instead of "Checking…". */
+  readonly detailsFailed = input(false);
 
   readonly again = output<void>();
   readonly skip = output<void>();
   readonly seen = output<void>();
   readonly later = output<void>();
   readonly share = output<void>();
+  readonly retry = output<void>();
 
   protected readonly expanded = signal(false);
   protected readonly posterFailed = signal(false);
@@ -71,6 +74,11 @@ export class Ticket {
   protected href(p: ProviderRef): string | null {
     return serviceSearch(p.id, this.title().title) ?? this.details()?.watch.link ?? null;
   }
+
+  /** TMDB's "where to watch" page, built from the id when details never arrived. */
+  protected readonly tmdbWatch = computed(
+    () => `https://www.themoviedb.org/${this.title().type}/${this.title().id}/watch`,
+  );
 
   protected readonly trailer = computed(() => {
     const key = this.details()?.trailer;

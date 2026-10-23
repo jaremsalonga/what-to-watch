@@ -1,10 +1,14 @@
 <div class="shell">
   <header class="top">
-    <a routerLink="/" class="logo" aria-label="What to Watch? home">What to <span>Watch?</span></a>
-    <div class="top-right">
+    <div class="brand">
+      <a routerLink="/" class="logo" aria-label="What to Watch? home"
+        >What to <span>Watch?</span></a
+      >
       @if (state.profile(); as p) {
         <span class="hello">Hi, {{ p.name }}</span>
       }
+    </div>
+    <div class="top-right">
       <button
         type="button"
         class="sound"

@@ -14,7 +14,15 @@ import { LANGUAGES, MOODS, MOVIE_GENRES, RELEASES, TIMES } from '../core/moods';
 import { NothingFound, Picker } from '../core/picker';
 import { Sound } from '../core/sound';
 import { AppState, type Stub } from '../core/state';
-import type { Genre, Mood, ReleasePreset, Title, TimeChoice, TypeChoice } from '../core/types';
+import type {
+  Genre,
+  Mood,
+  ReleasePreset,
+  Title,
+  TitleDetails,
+  TimeChoice,
+  TypeChoice,
+} from '../core/types';
 import { FilmStrip } from '../film-strip/film-strip';
 import { Share } from '../share/share';
 import { Ticket } from '../ticket/ticket';
@@ -57,6 +65,9 @@ export class Booth implements OnInit, OnDestroy {
   protected readonly showTicket = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly busyFor = signal(0);
+  /** The ticket's details couldn't be loaded, so it offers a retry instead of "Checking…". */
+  protected readonly detailsFailed = signal(false);
+  private loadingDetails = false;
   /** "Roll again" on a hidden gem rolls another hidden gem. */
   private lastWasSurprise = false;
   private busyTimer: ReturnType<typeof setInterval> | null = null;
@@ -232,6 +243,7 @@ export class Booth implements OnInit, OnDestroy {
     const d = this.reveal().nativeElement;
     if (!d.open) d.showModal();
     this.showTicket.set(true);
+    if (!this.rolling() && !this.last()?.details) void this.retryDetails();
   }
   protected closeTicket() {
     const d = this.reveal().nativeElement;
@@ -252,7 +264,7 @@ export class Booth implements OnInit, OnDestroy {
         this.sound.beep(),
       );
       const w = result.winner;
-      const details = this.api.title(w.type, w.id, this.state.region()).catch(() => null);
+      const details = this.fetchDetails(w);
       await this.strip().run(result.reel, () => {
         this.sound.tick();
         navigator.vibrate?.(4);
@@ -262,6 +274,7 @@ export class Booth implements OnInit, OnDestroy {
       navigator.vibrate?.([20, 40, 30]);
       const number = this.state.pulls() + 1;
       this.state.pulls.set(number);
+      this.detailsFailed.set(false);
       this.state.last.set({
         title: w,
         details: null,
@@ -271,14 +284,51 @@ export class Booth implements OnInit, OnDestroy {
       });
       this.api.event('pull');
       this.openTicket();
-      const d = await details;
-      const cur = this.state.last();
-      if (d && cur && cur.title.id === w.id) this.state.last.set({ ...cur, details: d });
+      this.applyDetails(w, await details);
     } catch (e) {
       this.sound.boost(false);
       this.showError(e);
     } finally {
       this.rolling.set(false);
+    }
+  }
+
+  /**
+   * Where it streams, for the ticket. The pull just used up part of the per-second limit, so a
+   * "busy" answer waits and tries again, and any other failure gets one more try.
+   */
+  private async fetchDetails(w: Title): Promise<TitleDetails | null> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await this.api.title(w.type, w.id, this.state.region());
+      } catch (e) {
+        if (e instanceof OfflineError || (e instanceof ApiError && e.status === 400)) break;
+        const wait = e instanceof BusyError ? e.retryAfter * 1000 : 1200;
+        await new Promise((r) => setTimeout(r, Math.min(wait, 4000)));
+      }
+    }
+    return null;
+  }
+
+  private applyDetails(w: Title, d: TitleDetails | null) {
+    const cur = this.state.last();
+    if (!cur || cur.title.id !== w.id || cur.title.type !== w.type) return;
+    if (d) {
+      this.detailsFailed.set(false);
+      this.state.last.set({ ...cur, details: d });
+    } else this.detailsFailed.set(true);
+  }
+
+  /** "Try again" on the ticket, or a saved ticket reopened before its details arrived. */
+  protected async retryDetails() {
+    const l = this.last();
+    if (!l || l.details || this.loadingDetails) return;
+    this.loadingDetails = true;
+    this.detailsFailed.set(false);
+    try {
+      this.applyDetails(l.title, await this.fetchDetails(l.title));
+    } finally {
+      this.loadingDetails = false;
     }
   }
 
