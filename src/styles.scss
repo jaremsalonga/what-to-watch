@@ -54,6 +54,12 @@ a {
   outline-offset: 2px;
 }
 
+/* showModal() focuses the dialog itself; the ring would draw a box around the whole pop-up. */
+dialog:focus,
+dialog:focus-visible {
+  outline: none;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

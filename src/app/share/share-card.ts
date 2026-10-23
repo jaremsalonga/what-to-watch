@@ -4,6 +4,8 @@ import { AppState } from '../core/state';
 import { Share } from './share';
 import { drawStory, VERDICTS, type Verdict } from './story';
 
+const SITE = 'https://whattowatch.jsalonga.dev';
+
 /** "Share a story": pick a verdict, add a line, and send a 9:16 card through the share sheet. */
 @Component({
   selector: 'app-share-card',
@@ -58,6 +60,16 @@ import { drawStory, VERDICTS, type Verdict } from './story';
           @if (status(); as s) {
             <p class="note" role="status">{{ s }}</p>
           }
+          <div class="link-row">
+            <a [href]="site" target="_blank" rel="noopener">whattowatch.jsalonga.dev</a>
+            <button type="button" class="text" (click)="copyLink()">
+              {{ copied() ? 'Copied ✓' : 'Copy link' }}
+            </button>
+          </div>
+          <p class="hint">
+            Pictures can't hold a tappable link. On Instagram, add a Link sticker and paste it. In
+            chats, the link comes with the picture.
+          </p>
         </footer>
       }
     </dialog>
@@ -138,6 +150,24 @@ import { drawStory, VERDICTS, type Verdict } from './story';
       display: grid;
       gap: 6px;
     }
+    .link-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 44px;
+    }
+    .link-row a {
+      color: var(--ticket);
+      font: 600 0.85rem/1.2 var(--mono);
+      text-underline-offset: 3px;
+    }
+    .hint {
+      margin: 0;
+      color: var(--dim);
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
     footer {
       padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
       border-top: 1px solid var(--night-3);
@@ -158,6 +188,8 @@ export class ShareCard {
   protected readonly note = signal('');
   protected readonly busy = signal(false);
   protected readonly status = signal<string | null>(null);
+  protected readonly copied = signal(false);
+  protected readonly site = SITE;
   protected readonly canShareFiles =
     typeof navigator !== 'undefined' &&
     typeof navigator.canShare === 'function' &&
@@ -174,6 +206,7 @@ export class ShareCard {
           this.note.set('');
           this.verdict.set('must');
           this.status.set(null);
+          this.copied.set(false);
         });
         d.showModal();
       } else if (!item && d.open) d.close();
@@ -192,6 +225,16 @@ export class ShareCard {
 
   protected backdrop(e: MouseEvent) {
     if (e.target === this.dialog().nativeElement) this.dialog().nativeElement.close();
+  }
+
+  protected async copyLink() {
+    try {
+      await navigator.clipboard.writeText(SITE);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      this.status.set(`Couldn't copy. The link is ${SITE}`);
+    }
   }
 
   protected async send(title: string) {
@@ -218,7 +261,8 @@ export class ShareCard {
       if (!blob) throw new Error('no image');
       const file = new File([blob], 'what-to-watch.png', { type: 'image/png' });
       if (this.canShareFiles) {
-        await navigator.share({ files: [file], title, text: `${title} · What to Watch?` });
+        // The link goes in the text, so chat apps show it as a tappable link next to the picture.
+        await navigator.share({ files: [file], title, text: `${title} · What to Watch? ${SITE}` });
       } else {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);

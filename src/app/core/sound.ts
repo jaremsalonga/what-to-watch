@@ -44,13 +44,41 @@ export class Sound {
       if (document.hidden) void this.ctx.suspend();
       else if (!this.muted()) void this.ctx.resume();
     });
+    // iOS can interrupt audio (a call, Siri, another app), leaving the context "interrupted".
+    document.addEventListener('pointerup', () => {
+      if (this.ctx && this.ctx.state !== 'running' && !this.muted() && !document.hidden)
+        void this.ctx.resume();
+    });
   }
 
   toggleMute() {
     this.muted.set(!this.muted());
     save(KEY, { muted: this.muted() });
     if (this.muted()) this.stopMusic(0.2);
-    else this.startMusic();
+    else this.unlock();
+  }
+
+  /** True once audio is actually playing (iOS can leave the context suspended after a tap). */
+  get running() {
+    return this.ctx?.state === 'running';
+  }
+
+  /**
+   * Call from inside a tap. iOS Safari only starts audio from certain gestures (a touchend or
+   * click, not a touchstart), mutes Web Audio when the silent switch is on unless the page asks
+   * for "playback", and needs a sound started inside the gesture to wake the context.
+   */
+  unlock() {
+    if (this.muted()) return;
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session) session.type = 'playback';
+    const ctx = this.audio();
+    if (!ctx) return;
+    const silent = ctx.createBufferSource();
+    silent.buffer = ctx.createBuffer(1, 1, 22050);
+    silent.connect(ctx.destination);
+    silent.start(0);
+    this.startMusic();
   }
 
   /** Louder while the film rolls, back to lobby level after. */
@@ -89,7 +117,11 @@ export class Sound {
 
   /** Starts the lobby music (once): a soft pad, a walking bass and a vibraphone-like arpeggio. */
   startMusic() {
-    if (this.music) return;
+    if (this.music) {
+      // Already scheduled, but the context may be suspended (iOS, or back from the background).
+      this.audio();
+      return;
+    }
     const ctx = this.audio();
     if (!ctx || !this.master) return;
     const gain = ctx.createGain();
