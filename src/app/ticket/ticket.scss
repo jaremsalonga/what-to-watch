@@ -288,30 +288,29 @@
     flex: 1;
   }
 }
+/* Solid fills, so the booth behind the dimmed backdrop never shows through a button. */
+.actions .btn.ghost {
+  background: var(--night);
+}
+.actions .btn.ghost.judge {
+  background: var(--night-2);
+}
 .btn.ghost[aria-pressed='true'] {
   border-color: var(--ticket);
   color: var(--ticket);
 }
 
-.text-row {
-  justify-content: space-between;
-  > * {
-    flex: none;
+.judge {
+  span {
+    margin-right: 4px;
+    color: var(--dim);
   }
 }
-.text {
-  appearance: none;
-  background: none;
-  border: 0;
-  padding: 10px 0;
-  cursor: pointer;
-  font: 600 0.82rem/1 var(--body);
-  color: var(--dim);
-  &:hover {
-    color: var(--fg);
-  }
-}
-.strong {
+.again {
+  border-color: var(--lamp);
   color: var(--lamp);
-  font-weight: 800;
+  &:hover {
+    border-color: var(--lamp);
+    background: oklch(0.82 0.15 78 / 0.1);
+  }
 }

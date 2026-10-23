@@ -128,9 +128,13 @@
       {{ isLater() ? 'Saved for later ✓' : 'Save for later' }}
     </button>
   </div>
-  <div class="row text-row">
-    <button type="button" class="text" (click)="seen.emit()">Seen it · tear stub</button>
-    <button type="button" class="text" (click)="skip.emit()">Not this one</button>
-    <button type="button" class="text strong" (click)="again.emit()">Roll again ↻</button>
+  <div class="row">
+    <button type="button" class="btn ghost judge" (click)="seen.emit()">
+      <span aria-hidden="true">✓</span> Seen it
+    </button>
+    <button type="button" class="btn ghost judge" (click)="skip.emit()">
+      <span aria-hidden="true">✕</span> Not this one
+    </button>
   </div>
+  <button type="button" class="btn ghost again" (click)="again.emit()">Roll again ↻</button>
 </div>
