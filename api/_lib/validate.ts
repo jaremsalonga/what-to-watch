@@ -92,6 +92,8 @@ export function discoverParams(q: URLSearchParams): DiscoverRequest {
 
   const lang = match(q.get('lang'), LANG, 'lang');
   if (lang) p['with_original_language'] = lang;
+  const country = match(q.get('country'), REGION, 'country');
+  if (country) p['with_origin_country'] = country;
 
   const providers = match(q.get('providers'), PROVIDERS, 'providers');
   if (providers) {

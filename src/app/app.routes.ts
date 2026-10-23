@@ -4,6 +4,11 @@ import { Booth } from './booth/booth';
 export const routes: Routes = [
   { path: '', component: Booth, title: 'What to Watch?' },
   {
+    path: 'stubs',
+    loadComponent: () => import('./stubs/stubs').then((m) => m.Stubs),
+    title: 'Stubs · What to Watch?',
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./settings/settings').then((m) => m.Settings),
     title: 'Settings · What to Watch?',

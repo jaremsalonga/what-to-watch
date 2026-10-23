@@ -58,40 +58,12 @@
 </section>
 
 <section>
-  <h2>Saved for later · {{ state.later().length }}</h2>
-  @if (state.later().length) {
-    <ul class="stubs">
-      @for (s of state.later(); track s.type + s.id) {
-        <li>
-          @if (poster(s.poster); as src) {
-            <img [src]="src" alt="" width="40" height="60" />
-          }
-          <span>{{ s.title }}</span>
-          <button type="button" class="text" (click)="state.toggleLater(s)">Remove</button>
-        </li>
-      }
-    </ul>
-  } @else {
-    <p class="note">Tap "Save for later" on a ticket to keep it here.</p>
-  }
+  <h2>Saved and seen</h2>
+  <p class="note">Your saved tickets and torn stubs live in <a routerLink="/stubs">Stubs</a>.</p>
 </section>
 
 <section>
-  <h2>Seen it · {{ state.seen().length }}</h2>
-  <p class="note">
-    Films you've marked as seen never come up again. The full stub book is coming soon.
-  </p>
-  @if (state.seen().length) {
-    <ul class="stubs">
-      @for (s of state.seen().slice(0, 30); track s.type + s.id) {
-        <li>
-          @if (poster(s.poster); as src) {
-            <img [src]="src" alt="" width="40" height="60" />
-          }
-          <span>{{ s.title }}</span>
-          <button type="button" class="text" (click)="forgetSeen(s.id, s.type)">Undo</button>
-        </li>
-      }
-    </ul>
-  }
+  <h2>Contact us</h2>
+  <p class="note">Found a bug, a wrong streaming link, or have an idea?</p>
+  <a class="btn ghost contact" [href]="contact">Email us</a>
 </section>

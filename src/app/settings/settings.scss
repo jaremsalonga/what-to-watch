@@ -71,3 +71,12 @@ h2 {
     font-weight: 600;
   }
 }
+.contact {
+  justify-self: start;
+  width: auto;
+  padding-inline: 1.4rem;
+  text-decoration: none;
+}
+.note a {
+  color: var(--lamp);
+}

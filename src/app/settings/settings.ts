@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Api, ApiError, BusyError } from '../core/api';
 import { AppState } from '../core/state';
-import { POSTER } from '../core/types';
+import { contactUrl } from '../core/links';
+import { RouterLink } from '@angular/router';
 import { ServicesPicker } from '../services/services-picker';
 
 @Component({
   selector: 'app-settings',
-  imports: [ServicesPicker],
+  imports: [ServicesPicker, RouterLink],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
 })
@@ -17,7 +18,7 @@ export class Settings implements OnInit {
   protected readonly nameDraft = signal(this.state.profile()?.name ?? '');
   protected readonly status = signal<string | null>(null);
   protected readonly confirmDelete = signal(false);
-  protected readonly poster = (p: string | null) => POSTER(p, 'w92');
+  protected readonly contact = contactUrl('What to Watch? feedback');
 
   ngOnInit() {
     this.api
@@ -61,9 +62,5 @@ export class Settings implements OnInit {
     this.nameDraft.set('');
     this.confirmDelete.set(false);
     this.status.set('Your name was deleted.');
-  }
-
-  protected forgetSeen(id: number, type: 'movie' | 'tv') {
-    this.state.seen.update((l) => l.filter((s) => !(s.id === id && s.type === type)));
   }
 }

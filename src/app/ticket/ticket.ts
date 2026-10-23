@@ -23,6 +23,7 @@ export class Ticket {
   readonly skip = output<void>();
   readonly seen = output<void>();
   readonly later = output<void>();
+  readonly share = output<void>();
 
   protected readonly expanded = signal(false);
   protected readonly posterFailed = signal(false);
@@ -57,19 +58,19 @@ export class Ticket {
     return [...list].sort((a, b) => Number(mine.has(b.id)) - Number(mine.has(a.id)));
   });
 
+  /** The big button, only where the pills can't do the job: showtimes, or TMDB's page. */
   protected readonly primary = computed<{ label: string; href: string } | null>(() => {
-    const t = this.title();
-    if (this.cinemas()) return { label: 'Find showtimes', href: showtimesUrl(t.title) };
+    if (this.cinemas()) return { label: 'Find showtimes', href: showtimesUrl(this.title().title) };
     const d = this.details();
-    if (!d) return null;
-    const mine = new Set(this.services());
-    const best: ProviderRef | undefined =
-      this.stream().find((p) => mine.has(p.id) && serviceSearch(p.id, t.title)) ??
-      this.stream().find((p) => serviceSearch(p.id, t.title));
-    if (best) return { label: `Open in ${best.name}`, href: serviceSearch(best.id, t.title)! };
-    if (d.watch.link) return { label: 'Where to watch', href: d.watch.link };
+    if (d && !this.stream().length && d.watch.link)
+      return { label: 'Where to watch', href: d.watch.link };
     return null;
   });
+
+  /** Each "Stream it on" pill opens that service's search, or TMDB's where-to-watch page. */
+  protected href(p: ProviderRef): string | null {
+    return serviceSearch(p.id, this.title().title) ?? this.details()?.watch.link ?? null;
+  }
 
   protected readonly trailer = computed(() => {
     const key = this.details()?.trailer;

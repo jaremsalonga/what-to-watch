@@ -1,0 +1,282 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.head {
+  display: grid;
+  gap: 12px;
+}
+.h {
+  margin: 4px 0 0;
+  font: 900 2.2rem/1 var(--display);
+  text-transform: uppercase;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--night-2);
+  border: 1px solid var(--night-3);
+  button {
+    appearance: none;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 6px;
+    background: none;
+    color: var(--dim);
+    font: 600 0.85rem/1 var(--body);
+    cursor: pointer;
+  }
+  button[aria-selected='true'] {
+    background: var(--lamp);
+    color: var(--night);
+  }
+  b {
+    font: 700 0.7rem/1 var(--mono);
+    margin-left: 4px;
+    opacity: 0.8;
+  }
+}
+
+.book {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+/* A mini admission ticket: the main part and a tear-off end with the viewer's name. */
+.stub {
+  --edge: 8px;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  color: var(--ticket-ink);
+  filter: drop-shadow(0 6px 10px oklch(0.05 0 0 / 0.35));
+}
+
+.main,
+.end {
+  background: var(--ticket);
+  /* Notches top and bottom where the perforation runs. */
+  --notch:
+    radial-gradient(circle at 100% 0, transparent 7px, #000 7.5px) top right / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 7px, #000 7.5px) bottom right / 51% 51%
+      no-repeat,
+    linear-gradient(#000, #000) left / 50% 100% no-repeat;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px 10px 10px;
+  border-radius: 10px 0 0 10px;
+  border-right: 1.5px dashed color-mix(in oklch, var(--ticket-ink) 40%, transparent);
+  mask: var(--notch);
+}
+
+.end {
+  display: grid;
+  place-items: center;
+  border-radius: 0 10px 10px 0;
+  mask:
+    radial-gradient(circle at 0 0, transparent 7px, #000 7.5px) top left / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, transparent 7px, #000 7.5px) bottom left / 51% 51% no-repeat,
+    linear-gradient(#000, #000) right / 50% 100% no-repeat;
+  span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font: 900 0.95rem/1 var(--display);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    max-height: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.poster {
+  width: 56px;
+  height: 84px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: color-mix(in oklch, var(--ticket-ink) 15%, transparent);
+  &.blank {
+    background: linear-gradient(160deg, var(--night-3), var(--night-2));
+  }
+}
+
+.info {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+}
+.kicker,
+.meta {
+  font: 400 0.62rem/1.3 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+h2 {
+  margin: 0;
+  font: 900 1.25rem/1.05 var(--display);
+  text-transform: uppercase;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 4px;
+}
+.act {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  color: var(--ticket-ink);
+  font: 600 0.78rem/1 var(--body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklch, var(--ticket-ink) 35%, transparent);
+  cursor: pointer;
+  &.strong {
+    font-weight: 800;
+  }
+}
+
+/* ---------- Seen: the end is torn off along a ragged edge, but everything stays readable. ---------- */
+
+.torn {
+  .main {
+    background:
+      linear-gradient(115deg, transparent 60%, oklch(1 0 0 / 0.25) 75%, transparent 90%),
+      oklch(0.9 0.035 150);
+    border-right: 0;
+    border-radius: 10px 0 0 10px;
+    mask: none;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 7px) 0%,
+      calc(100% - 6px) 7.14%,
+      calc(100% - 2px) 14.29%,
+      calc(100% - 0px) 21.43%,
+      calc(100% - 3px) 28.57%,
+      calc(100% - 3px) 35.71%,
+      calc(100% - 7px) 42.86%,
+      calc(100% - 0px) 50%,
+      calc(100% - 8px) 57.14%,
+      calc(100% - 0px) 64.29%,
+      calc(100% - 3px) 71.43%,
+      calc(100% - 2px) 78.57%,
+      calc(100% - 2px) 85.71%,
+      calc(100% - 3px) 92.86%,
+      calc(100% - 8px) 100%,
+      0 100%
+    );
+  }
+  .end {
+    background: oklch(0.9 0.035 150);
+    mask: none;
+    clip-path: polygon(
+      1px 0,
+      100% 0,
+      100% 100%,
+      0px 100%,
+      5px 92.86%,
+      6px 85.71%,
+      6px 78.57%,
+      5px 71.43%,
+      8px 64.29%,
+      0px 57.14%,
+      8px 50%,
+      1px 42.86%,
+      5px 35.71%,
+      5px 28.57%,
+      8px 21.43%,
+      6px 14.29%,
+      2px 7.14%,
+      1px 0%
+    );
+    translate: 5px 3px;
+    rotate: 4deg;
+    transform-origin: 0 0;
+  }
+  .poster {
+    filter: saturate(0.6);
+  }
+}
+
+.stamp {
+  position: absolute;
+  right: 64px;
+  top: 10px;
+  padding: 3px 8px;
+  border: 2px solid var(--red);
+  border-radius: 5px;
+  color: var(--red);
+  font: 900 0.85rem/1 var(--display);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  rotate: -10deg;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* The tear itself, played on a saved stub before it moves to "Seen it". */
+.tearing .end {
+  animation: tear-off 650ms var(--ease-out) forwards;
+}
+@keyframes tear-off {
+  30% {
+    translate: 3px 0;
+    rotate: 2deg;
+  }
+  100% {
+    translate: 30px 40px;
+    rotate: 28deg;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tearing .end {
+    animation: none;
+  }
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 24px 0;
+  p {
+    margin: 0;
+  }
+  .btn {
+    margin-top: 12px;
+    width: auto;
+    padding-inline: 1.6rem;
+    text-decoration: none;
+  }
+}
+.ghost-stub {
+  width: 180px;
+  height: 64px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  border: 2px dashed var(--night-3);
+}

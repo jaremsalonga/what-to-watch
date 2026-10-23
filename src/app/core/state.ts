@@ -23,7 +23,9 @@ export interface Stub {
   type: MediaType;
   title: string;
   poster: string | null;
+  /** When it was saved or marked seen (epoch ms). */
   at: number;
+  year?: number | null;
 }
 
 export interface SavedProfile {
@@ -110,6 +112,9 @@ export class AppState {
     if (this.isSeen(t.id, t.type)) return;
     this.seen.update((list) => [t, ...list].slice(0, 2000));
     this.later.update((list) => list.filter((s) => !(s.id === t.id && s.type === t.type)));
+  }
+  unsee(id: number, type: MediaType) {
+    this.seen.update((l) => l.filter((s) => !(s.id === id && s.type === type)));
   }
   toggleLater(t: Stub) {
     this.later.update((list) =>

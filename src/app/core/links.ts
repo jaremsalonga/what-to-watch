@@ -22,3 +22,8 @@ export const trailerUrl = (key: string) =>
   `https://www.youtube.com/watch?v=${encodeURIComponent(key)}`;
 export const showtimesUrl = (title: string) =>
   `https://www.google.com/search?q=${encodeURIComponent(`${title} showtimes near me`)}`;
+
+/** Where "Contact us" goes. */
+export const CONTACT_EMAIL = 'whattoeat.jsalonga@gmail.com';
+export const contactUrl = (subject = 'What to Watch?') =>
+  `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}`;

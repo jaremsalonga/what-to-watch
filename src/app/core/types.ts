@@ -86,6 +86,8 @@ export interface Filters {
   minRating: number;
   /** Without picked services (or with "show everything"), still require streaming in the region. */
   streamOnly: boolean;
+  /** Original-language picks (ids from LANGUAGES); one is chosen at random per pull. */
+  languages: string[];
 }
 
 export const DEFAULT_FILTERS: Filters = {
@@ -99,6 +101,7 @@ export const DEFAULT_FILTERS: Filters = {
   years: null,
   minRating: 0,
   streamOnly: true,
+  languages: [],
 };
 
 export const POSTER = (path: string | null, size: 'w92' | 'w185' | 'w342' | 'w500' = 'w185') =>

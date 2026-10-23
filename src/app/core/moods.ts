@@ -93,6 +93,27 @@ export const RELEASES: { id: ReleasePreset; label: string }[] = [
   { id: 'classics', label: 'Classics (before 1980)' },
 ];
 
+/**
+ * Original-language filter. `lang` is ISO 639-1 as TMDB uses it ("cn" is Cantonese);
+ * `country` narrows to where it was made, so "British" is English-language from the UK.
+ */
+export const LANGUAGES: { id: string; label: string; lang: string; country?: string }[] = [
+  { id: 'en', label: 'English', lang: 'en' },
+  { id: 'gb', label: 'British (UK)', lang: 'en', country: 'GB' },
+  { id: 'tl', label: 'Filipino', lang: 'tl' },
+  { id: 'ko', label: 'Korean', lang: 'ko' },
+  { id: 'ja', label: 'Japanese', lang: 'ja' },
+  { id: 'zh', label: 'Chinese', lang: 'zh' },
+  { id: 'cn', label: 'Cantonese', lang: 'cn' },
+  { id: 'th', label: 'Thai', lang: 'th' },
+  { id: 'hi', label: 'Hindi', lang: 'hi' },
+  { id: 'id', label: 'Indonesian', lang: 'id' },
+  { id: 'fr', label: 'French', lang: 'fr' },
+  { id: 'es', label: 'Spanish', lang: 'es' },
+  { id: 'it', label: 'Italian', lang: 'it' },
+  { id: 'de', label: 'German', lang: 'de' },
+];
+
 /** TMDB's movie genres, used until the live list loads (and if it can't). */
 export const MOVIE_GENRES = [
   { id: 28, name: 'Action' },

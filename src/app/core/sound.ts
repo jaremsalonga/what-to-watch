@@ -3,20 +3,31 @@ import { load, save } from './storage';
 
 const KEY = 'wtw:muted';
 
-/** Chords for the roll music: a slow, warm Cmaj7 - Am7 - Dm7 - G7 loop (MIDI note numbers). */
+/**
+ * Chords for the lobby music, a warm eight-bar loop (MIDI note numbers):
+ * Cmaj7 - Am7 - Dm7 - G7 - Em7 - A7 - Dm7 - G7.
+ */
 const CHORDS = [
   [48, 55, 59, 64],
   [45, 52, 55, 60],
   [50, 57, 60, 65],
   [43, 50, 53, 59],
+  [52, 55, 59, 62],
+  [45, 52, 55, 61],
+  [50, 57, 60, 65],
+  [43, 50, 53, 59],
 ];
-const BEAT = 60 / 116;
+const BEAT = 60 / 104;
+/** Music level in the background, and while the film rolls. */
+const LOBBY = 0.14;
+const ROLLING = 0.3;
 const hz = (midi: number) => 440 * 2 ** ((midi - 69) / 12);
 
 /**
  * Every sound is synthesised with Web Audio, so there are no files to download or cache:
- * light lounge music while the film rolls, a projector click for each frame that passes the
- * gate, and a bell when the ticket prints. Muted state is remembered on this device.
+ * soft lobby music that loops in the background (louder while the film rolls), a projector
+ * click for each frame that passes the gate, and a bell when the ticket prints. Muted state
+ * is remembered on this device; music pauses while the app is in the background.
  */
 @Injectable({ providedIn: 'root' })
 export class Sound {
@@ -26,10 +37,30 @@ export class Sound {
   private noise: AudioBuffer | null = null;
   private music: { gain: GainNode; timer: ReturnType<typeof setInterval> } | null = null;
 
+  constructor() {
+    if (typeof document === 'undefined') return;
+    document.addEventListener('visibilitychange', () => {
+      if (!this.ctx) return;
+      if (document.hidden) void this.ctx.suspend();
+      else if (!this.muted()) void this.ctx.resume();
+    });
+  }
+
   toggleMute() {
     this.muted.set(!this.muted());
     save(KEY, { muted: this.muted() });
-    if (this.muted()) this.stopMusic(0.1);
+    if (this.muted()) this.stopMusic(0.2);
+    else this.startMusic();
+  }
+
+  /** Louder while the film rolls, back to lobby level after. */
+  boost(on: boolean) {
+    const m = this.music;
+    if (!m || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    m.gain.gain.cancelScheduledValues(t);
+    m.gain.gain.setValueAtTime(m.gain.gain.value, t);
+    m.gain.gain.linearRampToValueAtTime(on ? ROLLING : LOBBY, t + (on ? 0.3 : 1.2));
   }
 
   /** Must be called from a tap (browsers only allow audio after a user gesture). */
@@ -49,14 +80,14 @@ export class Sound {
     return this.ctx;
   }
 
-  /** Starts the roll music: a soft pad, a walking bass and a vibraphone-like arpeggio. */
+  /** Starts the lobby music (once): a soft pad, a walking bass and a vibraphone-like arpeggio. */
   startMusic() {
+    if (this.music) return;
     const ctx = this.audio();
     if (!ctx || !this.master) return;
-    this.stopMusic(0);
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.32, ctx.currentTime + 0.25);
+    gain.gain.linearRampToValueAtTime(LOBBY, ctx.currentTime + 2);
     const tone = ctx.createBiquadFilter();
     tone.type = 'lowpass';
     tone.frequency.value = 2400;
@@ -76,8 +107,12 @@ export class Sound {
           const bass = chord[0] - 12 + (beat === 4 ? 7 : 0);
           this.note(gain, hz(bass), next, BEAT * 0.9, 'triangle', 0.22);
         }
-        const arp = chord[[1, 2, 3, 2, 3, 1, 2, 3][beat]] + 12;
-        this.note(gain, hz(arp), next, BEAT * 0.45, 'triangle', 0.07);
+        // A sparser arpeggio on every other bar keeps the loop from feeling mechanical.
+        const bar = Math.floor(step / 8);
+        if (bar % 2 === 0 || beat % 2 === 1) {
+          const arp = chord[[1, 2, 3, 2, 3, 1, 2, 3][beat]] + 12;
+          this.note(gain, hz(arp), next, BEAT * 0.45, 'triangle', 0.07);
+        }
         next += BEAT / 2;
         step++;
       }

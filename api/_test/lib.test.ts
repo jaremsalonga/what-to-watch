@@ -29,6 +29,12 @@ describe('discoverParams', () => {
     expect(params['with_watch_providers']).toBeUndefined();
   });
 
+  it('maps language and origin country', () => {
+    const { params } = discoverParams(q('type=tv&lang=en&country=GB'));
+    expect(params).toMatchObject({ with_original_language: 'en', with_origin_country: 'GB' });
+    expect(() => discoverParams(q('type=tv&country=gbr'))).toThrow(BadRequest);
+  });
+
   it('maps the booth filters to TMDB discover parameters', () => {
     const { type, params } = discoverParams(
       q(

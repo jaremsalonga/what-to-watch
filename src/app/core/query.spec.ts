@@ -69,6 +69,13 @@ describe('buildQuery', () => {
     expect(q.params['streaming']).toBeUndefined();
   });
 
+  it('picks one of the chosen languages, with the country for British', () => {
+    expect(buildQuery(f({ languages: ['ko'] }), ctx).params['lang']).toBe('ko');
+    const uk = buildQuery(f({ languages: ['gb'] }), ctx).params;
+    expect(uk).toMatchObject({ lang: 'en', country: 'GB' });
+    expect(buildQuery(f(), ctx).params['lang']).toBeUndefined();
+  });
+
   it('gives identical filters the same cache key', () => {
     expect(buildQuery(f({ mood: 'funny' }), ctx).key).toBe(
       buildQuery(f({ mood: 'funny' }), ctx).key,

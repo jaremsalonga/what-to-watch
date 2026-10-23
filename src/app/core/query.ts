@@ -1,4 +1,4 @@
-import { genresFor, MOODS, SURPRISE, TIMES } from './moods';
+import { genresFor, LANGUAGES, MOODS, SURPRISE, TIMES } from './moods';
 import type { Filters, MediaType, ReleasePreset } from './types';
 
 export interface QueryContext {
@@ -100,6 +100,14 @@ export function buildQuery(f: Filters, ctx: QueryContext): PullQuery {
     }
   } else {
     p['to'] = iso(today);
+  }
+
+  // A random pick among the chosen languages, like the release presets.
+  const langs = LANGUAGES.filter((l) => (f.languages ?? []).includes(l.id));
+  if (langs.length) {
+    const l = langs[Math.floor(random() * langs.length)];
+    p['lang'] = l.lang;
+    if (l.country) p['country'] = l.country;
   }
 
   const floor = surprise ? Math.max(SURPRISE.minRating, f.minRating) : f.minRating;

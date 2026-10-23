@@ -10,12 +10,13 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiError, BusyError, OfflineError, Api } from '../core/api';
-import { MOODS, MOVIE_GENRES, RELEASES, TIMES } from '../core/moods';
+import { LANGUAGES, MOODS, MOVIE_GENRES, RELEASES, TIMES } from '../core/moods';
 import { NothingFound, Picker } from '../core/picker';
 import { Sound } from '../core/sound';
-import { AppState } from '../core/state';
-import type { Genre, Mood, ReleasePreset, TimeChoice, TypeChoice } from '../core/types';
+import { AppState, type Stub } from '../core/state';
+import type { Genre, Mood, ReleasePreset, Title, TimeChoice, TypeChoice } from '../core/types';
 import { FilmStrip } from '../film-strip/film-strip';
+import { Share } from '../share/share';
 import { Ticket } from '../ticket/ticket';
 
 /** One active "refine" filter, shown as a removable chip under the quick filters. */
@@ -36,6 +37,7 @@ export class Booth implements OnInit, OnDestroy {
   protected readonly sound = inject(Sound);
   private readonly api = inject(Api);
   private readonly picker = inject(Picker);
+  private readonly share = inject(Share);
   private readonly strip = viewChild.required(FilmStrip);
   private readonly sheet = viewChild.required<ElementRef<HTMLDialogElement>>('sheet');
   private readonly reveal = viewChild.required<ElementRef<HTMLDialogElement>>('reveal');
@@ -43,6 +45,7 @@ export class Booth implements OnInit, OnDestroy {
   protected readonly moods = MOODS.filter((m) => m.id !== 'surprise');
   protected readonly times = TIMES;
   protected readonly releases = RELEASES;
+  protected readonly languages = LANGUAGES;
   protected readonly types: { id: TypeChoice; label: string }[] = [
     { id: 'movie', label: 'Movies' },
     { id: 'tv', label: 'Series' },
@@ -110,6 +113,12 @@ export class Booth implements OnInit, OnDestroy {
         label: RELEASES.find((x) => x.id === r)?.label ?? r,
         remove: () => this.toggleRelease(r),
       });
+    for (const id of f.languages ?? [])
+      out.push({
+        key: `l${id}`,
+        label: LANGUAGES.find((x) => x.id === id)?.label ?? id,
+        remove: () => this.toggleLanguage(id),
+      });
     if (f.years)
       out.push({
         key: 'years',
@@ -136,7 +145,6 @@ export class Booth implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.busyTimer) clearInterval(this.busyTimer);
-    this.sound.stopMusic(0.1);
   }
 
   protected setMood(m: Mood) {
@@ -193,6 +201,12 @@ export class Booth implements OnInit, OnDestroy {
       years: null,
     });
   }
+  protected toggleLanguage(id: string) {
+    const cur = this.f().languages ?? [];
+    this.state.patchFilters({
+      languages: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+    });
+  }
   protected setYears(from: string, to: string) {
     const a = Number(from);
     const b = Number(to);
@@ -210,6 +224,7 @@ export class Booth implements OnInit, OnDestroy {
       release: [],
       years: null,
       minRating: 0,
+      languages: [],
     });
   }
 
@@ -231,6 +246,7 @@ export class Booth implements OnInit, OnDestroy {
     this.rolling.set(true);
     this.lastWasSurprise = surprise;
     this.sound.startMusic();
+    this.sound.boost(true);
     try {
       const result = await this.strip().countdown(this.picker.pull(Math.random, surprise), () =>
         this.sound.beep(),
@@ -241,7 +257,7 @@ export class Booth implements OnInit, OnDestroy {
         this.sound.tick();
         navigator.vibrate?.(4);
       });
-      this.sound.stopMusic();
+      this.sound.boost(false);
       this.sound.ding();
       navigator.vibrate?.([20, 40, 30]);
       const number = this.state.pulls() + 1;
@@ -259,7 +275,7 @@ export class Booth implements OnInit, OnDestroy {
       const cur = this.state.last();
       if (d && cur && cur.title.id === w.id) this.state.last.set({ ...cur, details: d });
     } catch (e) {
-      this.sound.stopMusic(0.2);
+      this.sound.boost(false);
       this.showError(e);
     } finally {
       this.rolling.set(false);
@@ -313,16 +329,31 @@ export class Booth implements OnInit, OnDestroy {
     this.api.event('seen');
     this.again();
   }
+  protected shareTicket() {
+    const l = this.last();
+    if (!l) return;
+    const d = l.details;
+    this.share.open({
+      id: l.title.id,
+      type: l.title.type,
+      title: l.title.title,
+      poster: d?.poster ?? l.title.poster,
+      year: d?.year ?? l.title.year,
+      rating: d?.rating ?? l.title.rating,
+      genres: d?.genres,
+    });
+  }
   protected later() {
     const l = this.last();
     if (l) this.state.toggleLater(stub(l.title));
   }
 }
 
-const stub = (t: { id: number; type: 'movie' | 'tv'; title: string; poster: string | null }) => ({
+const stub = (t: Title): Stub => ({
   id: t.id,
   type: t.type,
   title: t.title,
   poster: t.poster,
+  year: t.year,
   at: Date.now(),
 });

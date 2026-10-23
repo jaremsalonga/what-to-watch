@@ -48,14 +48,23 @@
       } @else if (!details()) {
         <span class="label">Checking where it streams…</span>
       } @else if (stream().length) {
-        <span class="label">Stream it on</span>
+        <span class="label">Stream it on · tap to open</span>
         <ul class="providers">
           @for (p of stream().slice(0, 5); track p.id) {
-            <li [class.mine]="services().includes(p.id)">
-              @if (logo(p.logo); as src) {
-                <img [src]="src" alt="" width="20" height="20" />
-              }
-              {{ p.name }}
+            <li>
+              <a
+                [class.mine]="services().includes(p.id)"
+                [href]="href(p)"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'Open ' + title().title + ' on ' + p.name"
+              >
+                @if (logo(p.logo); as src) {
+                  <img [src]="src" alt="" width="20" height="20" />
+                }
+                {{ p.name }}
+                <span class="go" aria-hidden="true">↗</span>
+              </a>
             </li>
           }
         </ul>
@@ -83,6 +92,7 @@
     @if (primary(); as p) {
       <a class="btn" [href]="p.href" target="_blank" rel="noopener noreferrer">{{ p.label }}</a>
     }
+    <button type="button" class="btn share" (click)="share.emit()">Share a story</button>
     <div class="row">
       @if (trailer(); as href) {
         <a class="btn ghost" [href]="href" target="_blank" rel="noopener noreferrer"

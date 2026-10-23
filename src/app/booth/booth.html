@@ -109,14 +109,6 @@
         </button>
       }
     }
-    <button
-      type="button"
-      class="text mute"
-      (click)="sound.toggleMute()"
-      [attr.aria-pressed]="!sound.muted()"
-    >
-      {{ sound.muted() ? 'Sound off' : 'Sound on' }}
-    </button>
   </div>
 </div>
 
@@ -226,6 +218,26 @@
       }
     </section>
 
+    <section class="sheet-section" aria-labelledby="lang-title">
+      <h3 id="lang-title" class="label">Language</h3>
+      <div class="chips">
+        @for (l of languages; track l.id) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().languages.includes(l.id)"
+            (click)="toggleLanguage(l.id)"
+          >
+            {{ l.label }}
+          </button>
+        }
+      </div>
+      <p class="note">
+        The language it was made in. Pick a few and each roll uses one of them; none means any
+        language.
+      </p>
+    </section>
+
     <section class="sheet-section" aria-labelledby="release-title">
       <h3 id="release-title" class="label">Release date</h3>
       <div class="chips">
@@ -317,6 +329,7 @@
           (skip)="skip()"
           (seen)="seen()"
           (later)="later()"
+          (share)="shareTicket()"
         />
       </div>
     }

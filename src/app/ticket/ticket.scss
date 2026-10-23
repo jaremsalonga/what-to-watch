@@ -113,19 +113,35 @@
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  li {
+  a {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font: 700 0.75rem/1 var(--body);
-    padding: 4px 7px 4px 4px;
-    border-radius: 5px;
-    border: 1px solid color-mix(in oklch, var(--ticket-ink) 30%, transparent);
+    min-height: 32px;
+    font: 700 0.78rem/1 var(--body);
+    padding: 5px 8px 5px 5px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in oklch, var(--ticket-ink) 35%, transparent);
+    color: var(--ticket-ink);
+    text-decoration: none;
+    transition:
+      transform 120ms var(--ease-out),
+      background 120ms;
+    &:hover {
+      background: color-mix(in oklch, var(--ticket-ink) 10%, transparent);
+    }
+    &:active {
+      transform: scale(0.96);
+    }
   }
-  li.mine {
+  a.mine {
     background: var(--ticket-ink);
     color: var(--ticket);
     border-color: var(--ticket-ink);
+  }
+  .go {
+    font-size: 0.7rem;
+    opacity: 0.7;
   }
   img {
     border-radius: 4px;
@@ -168,6 +184,9 @@
     border-color: color-mix(in oklch, var(--ticket-ink) 35%, transparent);
     box-shadow: none;
     font-size: 0.85rem;
+  }
+  .btn.share {
+    font-size: 1.05rem;
   }
   .btn.ghost[aria-pressed='true'] {
     background: color-mix(in oklch, var(--ticket-ink) 12%, transparent);

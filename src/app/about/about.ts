@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { CONTACT_EMAIL, contactUrl } from '../core/links';
 
 @Component({
   selector: 'app-about',
@@ -30,6 +31,15 @@ import { Component } from '@angular/core';
         to stop abuse: it's kept as a scrambled code, never as the address itself. Your filters,
         services and lists stay on this device. You can delete your name any time in Settings.
       </p>
+    </section>
+    <section>
+      <h2>Contact us</h2>
+      <p class="note">
+        Found a bug, a wrong streaming link, or have an idea? Write to
+        <a [href]="contact">{{ email }}</a
+        >.
+      </p>
+      <a class="btn ghost contact" [href]="contact">Contact us</a>
     </section>
     <section>
       <h2>Made by</h2>
@@ -64,6 +74,15 @@ import { Component } from '@angular/core';
       text-transform: uppercase;
       color: var(--dim);
     }
+    .contact {
+      justify-self: start;
+      width: auto;
+      padding-inline: 1.4rem;
+      text-decoration: none;
+    }
+    .note a {
+      color: var(--lamp);
+    }
     .tmdb {
       display: inline-flex;
       align-items: center;
@@ -82,4 +101,7 @@ import { Component } from '@angular/core';
     }
   `,
 })
-export class About {}
+export class About {
+  protected readonly email = CONTACT_EMAIL;
+  protected readonly contact = contactUrl('What to Watch? feedback');
+}
