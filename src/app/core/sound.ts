@@ -70,7 +70,14 @@ export class Sound {
       this.ctx = new AudioContext();
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.7;
-      this.master.connect(this.ctx.destination);
+      // A limiter after everything, so music, clicks and the bell together never clip.
+      const limiter = this.ctx.createDynamicsCompressor();
+      limiter.threshold.value = -8;
+      limiter.knee.value = 4;
+      limiter.ratio.value = 12;
+      limiter.attack.value = 0.003;
+      limiter.release.value = 0.2;
+      this.master.connect(limiter).connect(this.ctx.destination);
       const len = Math.floor(this.ctx.sampleRate * 0.05);
       this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
       const data = this.noise.getChannelData(0);
@@ -96,8 +103,15 @@ export class Sound {
     let next = ctx.currentTime + 0.02;
     let step = 0;
     const schedule = () => {
-      // Look ahead 300 ms so timer jitter never causes gaps.
-      while (next < ctx.currentTime + 0.3) {
+      // If the page was busy (a route change, a heavy render) and the timer fired late, skip the
+      // beats that were missed instead of starting them all at once, which crackles.
+      if (next < ctx.currentTime) {
+        const missed = Math.ceil((ctx.currentTime - next) / (BEAT / 2));
+        step += missed;
+        next += missed * (BEAT / 2);
+      }
+      // Look ahead 400 ms so timer jitter never causes gaps.
+      while (next < ctx.currentTime + 0.4) {
         const chord = CHORDS[Math.floor(step / 8) % CHORDS.length];
         const beat = step % 8;
         if (beat === 0) {
