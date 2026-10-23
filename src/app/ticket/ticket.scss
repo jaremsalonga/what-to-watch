@@ -31,7 +31,7 @@
 .head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
   padding-bottom: 10px;
   border-bottom: 2px solid var(--ticket-ink);
@@ -41,15 +41,44 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.serial {
-  font: 600 0.72rem/1 var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.tools {
+  display: flex;
+  gap: 6px;
+  margin: -6px -6px -6px 0;
+}
+.icon-btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ticket-ink);
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-out),
+    transform 150ms var(--ease-out);
+  &:hover {
+    background: color-mix(in oklch, var(--ticket-ink) 10%, transparent);
+  }
+  &:active {
+    transform: scale(0.92);
+  }
+  &[aria-pressed='true'] {
+    color: oklch(0.55 0.15 40);
+  }
 }
 .kicker {
   margin: -4px 0 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 4px 12px;
+  span {
+    white-space: nowrap;
+  }
   font: 600 0.64rem/1 var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -278,39 +307,41 @@
 
 .actions {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
-.row {
-  display: flex;
-  gap: 8px;
-  > * {
-    flex: 1;
-  }
+/* Quick verdicts as one bar of icon tiles, so the only big button is Roll again. */
+.tiles {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 1px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--night-3);
+  border: 1px solid var(--night-3);
 }
-/* Solid fills, so the booth behind the dimmed backdrop never shows through a button. */
-.actions .btn.ghost {
-  background: var(--night);
-}
-.actions .btn.ghost.judge {
+.tile {
+  appearance: none;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 6px 10px;
+  min-height: 64px;
+  border: 0;
   background: var(--night-2);
-}
-.btn.ghost[aria-pressed='true'] {
-  border-color: var(--ticket);
-  color: var(--ticket);
-}
-
-.judge {
-  span {
-    margin-right: 4px;
+  color: var(--fg);
+  font: 600 0.78rem/1.1 var(--body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease-out);
+  svg {
     color: var(--dim);
   }
-}
-.again {
-  border-color: var(--lamp);
-  color: var(--lamp);
   &:hover {
-    border-color: var(--lamp);
-    background: oklch(0.82 0.15 78 / 0.1);
+    background: color-mix(in oklch, var(--night-2) 92%, var(--fg));
+  }
+  &:active {
+    background: var(--night-3);
   }
 }
