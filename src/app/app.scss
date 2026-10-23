@@ -11,8 +11,16 @@
 .top {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
+  gap: 12px;
   padding-block: 14px 10px;
+}
+
+/* The greeting sits under the logo so it never competes with it for width. */
+.brand {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
 }
 
 .logo {
@@ -64,7 +72,7 @@
   color: var(--dim);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  max-width: 40vw;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
