@@ -1,0 +1,30 @@
+<div class="shell">
+  <header class="top">
+    <a routerLink="/" class="logo" aria-label="What to Watch? home">What to <span>Watch?</span></a>
+    @if (state.profile(); as p) {
+      <span class="hello">Hi, {{ p.name }}</span>
+    }
+  </header>
+
+  <main>
+    <router-outlet />
+  </main>
+
+  @if (!isAdmin()) {
+    <nav class="tabs" aria-label="Main">
+      @for (item of nav; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
+          >{{ item.label }}</a
+        >
+      }
+    </nav>
+  }
+</div>
+
+@if (!state.onboarded() && !isAdmin()) {
+  <app-onboarding />
+}

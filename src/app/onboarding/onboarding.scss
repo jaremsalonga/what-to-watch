@@ -1,0 +1,82 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--night);
+  overflow-y: auto;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+    calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+
+.sheet {
+  max-width: 440px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+  animation: rise 300ms var(--ease-out);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.marquee {
+  background: var(--night-2);
+  border: 1px solid var(--night-3);
+  border-radius: 16px;
+  padding: 16px 12px 22px;
+  display: grid;
+  gap: 14px;
+  margin-top: 6vh;
+}
+
+.bulbs {
+  display: flex;
+  justify-content: space-between;
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--lamp);
+    box-shadow: 0 0 8px var(--lamp);
+  }
+  i:nth-child(even) {
+    opacity: 0.3;
+    box-shadow: none;
+  }
+}
+
+h1 {
+  margin: 0;
+  text-align: center;
+  font: 900 2.4rem/0.95 var(--display);
+  text-transform: uppercase;
+  color: var(--lamp);
+  letter-spacing: 0.03em;
+}
+
+.title {
+  text-align: left;
+  font-size: 2rem;
+  margin-top: 4vh;
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+  &.small {
+    gap: 6px;
+  }
+}
+
+.skip {
+  background: none;
+  border: 0;
+  color: var(--dim);
+  font: 600 0.85rem/1 var(--body);
+  padding: 8px;
+  cursor: pointer;
+}

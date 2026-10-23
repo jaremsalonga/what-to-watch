@@ -1,0 +1,110 @@
+<article class="ticket-card" aria-live="polite">
+  <div class="head">
+    <span class="label">{{ surprise() ? 'Hidden gem' : "Tonight's pick" }}</span>
+    <span class="label">No. {{ number().toString().padStart(4, '0') }}</span>
+  </div>
+
+  <div class="body">
+    @if (poster(); as src) {
+      <img
+        class="poster"
+        [src]="src"
+        [alt]="'Poster for ' + title().title"
+        width="104"
+        height="156"
+        (error)="posterFailed.set(true)"
+      />
+    } @else {
+      <div class="poster blank" aria-hidden="true">{{ title().title }}</div>
+    }
+    <div class="info">
+      <h2>{{ title().title }}</h2>
+      <p class="meta">{{ meta() }}</p>
+      @if (details()?.genres?.length) {
+        <p class="genres">{{ details()!.genres.slice(0, 3).join(', ') }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="synopsis">
+    <span class="label">Synopsis</span>
+    <p [class.clamped]="!expanded()">{{ overview() }}</p>
+    @if (overview().length > 160) {
+      <button
+        type="button"
+        class="link"
+        (click)="expanded.set(!expanded())"
+        [attr.aria-expanded]="expanded()"
+      >
+        {{ expanded() ? 'Show less' : 'Read more' }}
+      </button>
+    }
+  </div>
+
+  <div class="stub-row">
+    <div class="where">
+      @if (cinemas()) {
+        <span class="label">Showing in cinemas</span>
+      } @else if (!details()) {
+        <span class="label">Checking where it streams…</span>
+      } @else if (stream().length) {
+        <span class="label">Stream it on</span>
+        <ul class="providers">
+          @for (p of stream().slice(0, 5); track p.id) {
+            <li [class.mine]="services().includes(p.id)">
+              @if (logo(p.logo); as src) {
+                <img [src]="src" alt="" width="20" height="20" />
+              }
+              {{ p.name }}
+            </li>
+          }
+        </ul>
+      } @else {
+        <span class="label">Not streaming in {{ details()!.watch.region }} right now</span>
+        @if (details()!.watch.rent.length) {
+          <p class="note small">
+            Rent on
+            {{
+              details()!
+                .watch.rent.slice(0, 2)
+                .map((r) => r.name)
+                .join(' or ')
+            }}
+          </p>
+        }
+      }
+    </div>
+    <div class="stub" aria-hidden="true">
+      <span>{{ name() || 'Tonight' }}</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    @if (primary(); as p) {
+      <a class="btn" [href]="p.href" target="_blank" rel="noopener noreferrer">{{ p.label }}</a>
+    }
+    <div class="row">
+      @if (trailer(); as href) {
+        <a class="btn ghost" [href]="href" target="_blank" rel="noopener noreferrer"
+          >Watch trailer</a
+        >
+      }
+      <button
+        type="button"
+        class="btn ghost"
+        (click)="later.emit()"
+        [attr.aria-pressed]="isLater()"
+      >
+        {{ isLater() ? 'Saved for later' : 'Save for later' }}
+      </button>
+    </div>
+    <div class="row small">
+      <button type="button" class="text" (click)="seen.emit()">Seen it · tear stub</button>
+      <button type="button" class="text" (click)="skip.emit()">Not this one</button>
+      <button type="button" class="text strong" (click)="again.emit()">Roll again ↻</button>
+    </div>
+  </div>
+  @if (!cinemas()) {
+    <p class="credit">Streaming data by JustWatch</p>
+  }
+</article>

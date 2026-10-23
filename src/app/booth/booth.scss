@@ -1,0 +1,134 @@
+:host {
+  display: grid;
+  gap: 18px;
+}
+
+.filters {
+  display: grid;
+  gap: 14px;
+}
+
+.group {
+  display: grid;
+  gap: 7px;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--night-3);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+  button {
+    flex: 1;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--dim);
+    padding: 0.55rem;
+    border-radius: 6px;
+    font: 600 0.85rem/1 var(--body);
+    cursor: pointer;
+  }
+  button[aria-pressed='true'] {
+    background: var(--ticket);
+    color: var(--ticket-ink);
+  }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  &.small button {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.78rem;
+  }
+}
+
+.toggles {
+  display: flex;
+  gap: 8px;
+  .chip {
+    flex: 1;
+  }
+}
+
+.panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--night-2);
+  border: 1px solid var(--night-3);
+  animation: open 200ms var(--ease-out);
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.text {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: var(--lamp);
+  font: 600 0.82rem/1 var(--body);
+  cursor: pointer;
+  padding: 6px 2px;
+}
+
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
+  gap: 6px;
+  .chip {
+    text-align: center;
+  }
+  .chip.blocked {
+    border-color: var(--red);
+    color: var(--red);
+    text-decoration: line-through;
+    background: transparent;
+  }
+}
+
+.range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  label {
+    display: grid;
+    gap: 5px;
+  }
+}
+
+/* The roll button stays in reach above the tab bar, whatever the scroll position. */
+.go {
+  position: sticky;
+  bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  display: grid;
+  gap: 8px;
+  padding-block: 10px 6px;
+  margin-block: -10px -6px;
+  background: linear-gradient(transparent, var(--night) 12px);
+}
+
+.services {
+  margin: -6px 0 0;
+  font: 400 0.72rem/1.4 var(--mono);
+  color: var(--dim);
+}
+
+.ticket-anchor {
+  scroll-margin-top: 12px;
+}

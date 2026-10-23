@@ -1,0 +1,97 @@
+<h1 class="h">Settings</h1>
+
+<section>
+  <h2>Your name</h2>
+  <form class="inline" (submit)="saveName($event)">
+    <label for="name" class="visually-hidden">Your name</label>
+    <input
+      id="name"
+      class="field"
+      maxlength="20"
+      [value]="nameDraft()"
+      (input)="nameDraft.set($any($event.target).value)"
+      placeholder="What should we call you?"
+    />
+    <button class="btn ghost" type="submit">Save</button>
+  </form>
+  @if (state.profile()) {
+    @if (confirmDelete()) {
+      <div class="confirm">
+        <span>Delete your name from this device and our server?</span>
+        <button type="button" class="btn ghost danger" (click)="deleteName()">Delete</button>
+        <button type="button" class="btn ghost" (click)="confirmDelete.set(false)">Keep</button>
+      </div>
+    } @else {
+      <button type="button" class="text" (click)="confirmDelete.set(true)">Delete my name</button>
+    }
+  }
+  @if (status(); as s) {
+    <p class="note" role="status">{{ s }}</p>
+  }
+</section>
+
+<section>
+  <h2>Country</h2>
+  <label for="region" class="visually-hidden">Country</label>
+  <select
+    id="region"
+    class="field"
+    [value]="state.region()"
+    (change)="setRegion($any($event.target).value)"
+  >
+    @if (!regions().length) {
+      <option [value]="state.region()">{{ state.region() }}</option>
+    }
+    @for (r of regions(); track r.code) {
+      <option [value]="r.code" [selected]="r.code === state.region()">{{ r.name }}</option>
+    }
+  </select>
+  <p class="note">
+    Streaming services and "in cinemas" depend on your country. Detected from your device; change it
+    if it's wrong.
+  </p>
+</section>
+
+<section>
+  <h2>Your streaming services</h2>
+  <app-services-picker [limit]="24" />
+</section>
+
+<section>
+  <h2>Saved for later · {{ state.later().length }}</h2>
+  @if (state.later().length) {
+    <ul class="stubs">
+      @for (s of state.later(); track s.type + s.id) {
+        <li>
+          @if (poster(s.poster); as src) {
+            <img [src]="src" alt="" width="40" height="60" />
+          }
+          <span>{{ s.title }}</span>
+          <button type="button" class="text" (click)="state.toggleLater(s)">Remove</button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="note">Tap "Save for later" on a ticket to keep it here.</p>
+  }
+</section>
+
+<section>
+  <h2>Seen it · {{ state.seen().length }}</h2>
+  <p class="note">
+    Films you've marked as seen never come up again. The full stub book is coming soon.
+  </p>
+  @if (state.seen().length) {
+    <ul class="stubs">
+      @for (s of state.seen().slice(0, 30); track s.type + s.id) {
+        <li>
+          @if (poster(s.poster); as src) {
+            <img [src]="src" alt="" width="40" height="60" />
+          }
+          <span>{{ s.title }}</span>
+          <button type="button" class="text" (click)="forgetSeen(s.id, s.type)">Undo</button>
+        </li>
+      }
+    </ul>
+  }
+</section>

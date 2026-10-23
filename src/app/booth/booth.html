@@ -1,0 +1,253 @@
+<app-film-strip [idle]="last()?.title ?? null" />
+
+<section class="filters" aria-label="Filters">
+  <div class="group">
+    <span class="label" id="mood-label">Mood</span>
+    <div class="chips" role="group" aria-labelledby="mood-label">
+      @for (m of moods; track m.id) {
+        <button
+          type="button"
+          class="chip"
+          [attr.aria-pressed]="f().mood === m.id"
+          (click)="setMood(m.id)"
+        >
+          {{ m.label }}
+        </button>
+      }
+      <button
+        type="button"
+        class="chip surprise"
+        [attr.aria-pressed]="f().mood === 'surprise'"
+        (click)="setMood('surprise')"
+      >
+        🎲 Surprise me
+      </button>
+    </div>
+    @if (f().mood === 'surprise') {
+      <p class="note">
+        Hidden gems: highly rated, but few people have seen them. Ignores mood and genres.
+      </p>
+    }
+  </div>
+
+  <div class="group">
+    <span class="label" id="type-label">Watch</span>
+    <div class="segmented" role="group" aria-labelledby="type-label">
+      @for (t of types; track t.id) {
+        <button
+          type="button"
+          [attr.aria-pressed]="f().type === t.id"
+          [disabled]="cinemasOnly() && t.id !== 'movie'"
+          (click)="setType(t.id)"
+        >
+          {{ t.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="group">
+    <span class="label" id="time-label">{{
+      f().type === 'tv' ? 'Episode length' : 'How much time'
+    }}</span>
+    <div class="chips" role="group" aria-labelledby="time-label">
+      @for (t of times; track t.id) {
+        <button
+          type="button"
+          class="chip"
+          [attr.aria-pressed]="f().time === t.id"
+          (click)="setTime(t.id)"
+        >
+          {{ f().type === 'tv' ? t.tvLabel : t.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="toggles">
+    <button
+      type="button"
+      class="chip"
+      [class.on]="panel() === 'genres'"
+      [attr.aria-expanded]="panel() === 'genres'"
+      aria-controls="genre-panel"
+      (click)="toggle('genres')"
+    >
+      Genres{{ genreCount() ? ' · ' + genreCount() : '' }} ▾
+    </button>
+    <button
+      type="button"
+      class="chip"
+      [class.on]="panel() === 'more'"
+      [attr.aria-expanded]="panel() === 'more'"
+      aria-controls="more-panel"
+      (click)="toggle('more')"
+    >
+      More filters{{ moreCount() ? ' · ' + moreCount() : '' }} ▾
+    </button>
+  </div>
+
+  @if (panel() === 'genres') {
+    <div class="panel" id="genre-panel">
+      <div class="panel-head">
+        <div class="segmented small" role="group" aria-label="Tap to">
+          <button
+            type="button"
+            [attr.aria-pressed]="genreMode() === 'pick'"
+            (click)="genreMode.set('pick')"
+          >
+            Pick
+          </button>
+          <button
+            type="button"
+            [attr.aria-pressed]="genreMode() === 'block'"
+            (click)="genreMode.set('block')"
+          >
+            Never show
+          </button>
+        </div>
+        <button type="button" class="text" (click)="clearGenres()">Clear</button>
+      </div>
+      <div class="genre-grid">
+        @for (g of genreList(); track g.id) {
+          <button
+            type="button"
+            class="chip"
+            [class.on]="genreState(g.id) === 'on'"
+            [class.blocked]="genreState(g.id) === 'blocked'"
+            [attr.aria-pressed]="genreState(g.id) !== 'off'"
+            [attr.aria-label]="g.name + (genreState(g.id) === 'blocked' ? ', never show' : '')"
+            (click)="tapGenre(g.id)"
+          >
+            {{ g.name }}
+          </button>
+        }
+      </div>
+      @if (f().genres.length > 1) {
+        <div class="chips">
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().match === 'any'"
+            (click)="state.patchFilters({ match: 'any' })"
+          >
+            Any of these
+          </button>
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().match === 'all'"
+            (click)="state.patchFilters({ match: 'all' })"
+          >
+            All of these
+          </button>
+        </div>
+      }
+      <p class="note">
+        Picked genres replace the mood's genres. For series, the closest series genres are used.
+      </p>
+    </div>
+  }
+
+  @if (panel() === 'more') {
+    <div class="panel" id="more-panel">
+      <div class="panel-head">
+        <span class="label">Release date</span>
+        <button type="button" class="text" (click)="clearMore()">Reset</button>
+      </div>
+      <div class="chips">
+        @for (r of releases; track r.id) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().release.includes(r.id)"
+            (click)="toggleRelease(r.id)"
+          >
+            {{ r.label }}
+          </button>
+        }
+      </div>
+      <div class="range">
+        <label>
+          <span class="label">From</span>
+          <select
+            class="field"
+            #from
+            [value]="f().years?.from ?? ''"
+            (change)="setYears(from.value, to.value || from.value)"
+          >
+            <option value="">Any</option>
+            @for (y of years; track y) {
+              <option [value]="y">{{ y }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span class="label">To</span>
+          <select
+            class="field"
+            #to
+            [value]="f().years?.to ?? ''"
+            (change)="setYears(from.value || to.value, to.value)"
+          >
+            <option value="">Any</option>
+            @for (y of years; track y) {
+              <option [value]="y">{{ y }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <p class="note">
+        Pick several and each pull uses one of them. A year range replaces the quick picks.
+      </p>
+
+      <span class="label">Rating</span>
+      <div class="chips">
+        @for (r of [0, 6, 7, 8]; track r) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().minRating === r"
+            (click)="state.patchFilters({ minRating: r })"
+          >
+            {{ r ? r + '★ and up' : 'Any' }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</section>
+
+<p class="services">{{ servicesLine() }} · <a routerLink="/settings">Change</a></p>
+
+<div class="go">
+  @if (busyFor() > 0) {
+    <p class="alert" role="status">The booth is busy. Try again in {{ busyFor() }}s.</p>
+  } @else if (message(); as m) {
+    <p class="alert" role="status">{{ m }}</p>
+  }
+  <button type="button" class="btn" (click)="roll()" [disabled]="rolling() || busyFor() > 0">
+    {{ rolling() ? 'Rolling…' : last() ? 'Roll again' : 'Roll film' }}
+  </button>
+</div>
+
+<div #ticketAnchor class="ticket-anchor">
+  @if (last(); as l) {
+    @if (!rolling()) {
+      <app-ticket
+        [title]="l.title"
+        [details]="l.details"
+        [services]="state.services()"
+        [name]="state.profile()?.name ?? null"
+        [cinemas]="l.cinemas"
+        [surprise]="l.surprise"
+        [number]="l.number"
+        [isLater]="state.isLater(l.title.id, l.title.type)"
+        (again)="roll()"
+        (skip)="skip()"
+        (seen)="seen()"
+        (later)="later()"
+      />
+    }
+  }
+</div>

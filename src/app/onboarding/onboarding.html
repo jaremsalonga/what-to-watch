@@ -1,0 +1,51 @@
+<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
+  <div class="sheet">
+    @if (step() === 'name') {
+      <div class="marquee">
+        <div class="bulbs" aria-hidden="true">
+          @for (b of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; track b) {
+            <i></i>
+          }
+        </div>
+        <h1 id="onboard-title">What should<br />we call you?</h1>
+      </div>
+      <form (submit)="saveName($event)" class="stack">
+        <label class="stack small">
+          <span class="label">Your name</span>
+          <input
+            id="onboard-name"
+            class="field"
+            type="text"
+            maxlength="20"
+            autocomplete="nickname"
+            [value]="name()"
+            (input)="name.set($any($event.target).value)"
+            autofocus
+          />
+        </label>
+        <p class="note">
+          Printed on your tickets. No email or password needed. 1 to 20 characters.
+        </p>
+        @if (error(); as e) {
+          <p class="alert" role="alert">{{ e }}</p>
+        }
+        <button class="btn" type="submit" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Get my ticket' }}
+        </button>
+        <button class="skip" type="button" (click)="step.set('services')">Skip for now</button>
+      </form>
+    } @else {
+      <h1 id="onboard-title" class="title">Which services do you have?</h1>
+      <p class="note">
+        Picks will only come from these, in {{ state.region() }}. You can change this any time in
+        Settings.
+      </p>
+      <app-services-picker />
+      <button class="btn" type="button" (click)="finish()">
+        {{
+          state.services().length || state.showAll() ? 'Start rolling' : 'Skip and show everything'
+        }}
+      </button>
+    }
+  </div>
+</div>
