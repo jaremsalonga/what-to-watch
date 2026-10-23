@@ -22,10 +22,34 @@ export interface Store {
   mget(keys: string[]): Promise<(string | null)[]>;
 }
 
+/** Env values pasted with quotes or spaces still work. */
+function envValue(...names: string[]): string {
+  for (const name of names) {
+    const v = (process.env[name] ?? '').trim().replace(/^["']|["']$/g, '');
+    if (v) return v;
+  }
+  return '';
+}
+
+/**
+ * The Upstash REST client, or null when it isn't configured. A wrong value (for example the
+ * redis:// URL instead of the https:// REST URL) is logged and treated as "not connected",
+ * so the app keeps working on the in-memory fallback instead of failing every request.
+ */
 export function redisFromEnv(): Redis | null {
-  const url = process.env['KV_REST_API_URL'] || process.env['UPSTASH_REDIS_REST_URL'];
-  const token = process.env['KV_REST_API_TOKEN'] || process.env['UPSTASH_REDIS_REST_TOKEN'];
-  return url && token ? new Redis({ url, token, automaticDeserialization: false }) : null;
+  const url = envValue('KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL');
+  const token = envValue('KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN');
+  if (!url || !token) return null;
+  if (!url.startsWith('https://')) {
+    console.error('KV_REST_API_URL must be the https:// REST URL from Upstash; using memory.');
+    return null;
+  }
+  try {
+    return new Redis({ url, token, automaticDeserialization: false });
+  } catch (e) {
+    console.error('Could not set up Upstash Redis; using memory.', e);
+    return null;
+  }
 }
 
 class UpstashStore implements Store {

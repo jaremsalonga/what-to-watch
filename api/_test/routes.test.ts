@@ -69,6 +69,18 @@ describe('API routes', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('pull: a redis:// URL in KV_REST_API_URL falls back to memory instead of failing', async () => {
+    vi.stubEnv('KV_REST_API_URL', 'redis://default:secret@example.upstash.io:6379');
+    vi.stubEnv('KV_REST_API_TOKEN', 'token');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ page: 1, total_pages: 1, total_results: 0, results: [] })),
+    );
+    const { GET } = await import('../pull');
+    expect((await GET(get('/api/pull?type=movie'))).status).toBe(200);
+  });
+
   it('pull: limits each visitor to 3 requests per second', async () => {
     vi.stubGlobal(
       'fetch',

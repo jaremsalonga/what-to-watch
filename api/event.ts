@@ -1,4 +1,4 @@
-import { fail, json, methodNotAllowed, readJson } from './_lib/http';
+import { fail, json, methodNotAllowed, readJson, safe } from './_lib/http';
 import { guard } from './_lib/guard';
 import { recordEvent, type EventKind } from './_lib/profiles';
 import { store } from './_lib/store';
@@ -6,7 +6,7 @@ import { store } from './_lib/store';
 const KINDS = new Set<EventKind>(['pull', 'seen', 'shared']);
 
 /** POST /api/event { kind }: counts pulls, seen stubs and shares for the admin page. */
-export async function POST(req: Request): Promise<Response> {
+export const POST = safe(async (req: Request): Promise<Response> => {
   const g = await guard(req, 'event');
   if (g instanceof Response) return g;
   const body = await readJson(req, 256);
@@ -18,6 +18,6 @@ export async function POST(req: Request): Promise<Response> {
     // Stats only.
   }
   return json({ ok: true });
-}
+});
 
 export const GET = () => methodNotAllowed('POST');

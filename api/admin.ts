@@ -1,4 +1,4 @@
-import { clientIp, cookie, fail, isCrossSite, json, readJson, tooMany } from './_lib/http';
+import { clientIp, cookie, fail, isCrossSite, json, readJson, tooMany, safe } from './_lib/http';
 import { limit } from './_lib/limits';
 import { adminStats, deleteProfile } from './_lib/profiles';
 import { store } from './_lib/store';
@@ -16,7 +16,7 @@ function sessionCookie(value: string, maxAge: number) {
 }
 
 /** GET /api/admin: who's using the app. Needs the admin session cookie. */
-export async function GET(req: Request): Promise<Response> {
+export const GET = safe(async (req: Request): Promise<Response> => {
   if (isCrossSite(req)) return fail(403, 'Requests must come from the app.');
   if (!isAdmin(req)) return fail(401, 'Sign in first.');
   try {
@@ -24,10 +24,10 @@ export async function GET(req: Request): Promise<Response> {
   } catch {
     return fail(503, 'Storage is unavailable right now.');
   }
-}
+});
 
 /** POST /api/admin { action: 'login', password } | { action: 'logout' } | { action: 'delete', id } */
-export async function POST(req: Request): Promise<Response> {
+export const POST = safe(async (req: Request): Promise<Response> => {
   if (isCrossSite(req)) return fail(403, 'Requests must come from the app.');
   const ip = clientIp(req);
   const body = await readJson(req);
@@ -56,4 +56,4 @@ export async function POST(req: Request): Promise<Response> {
     return json({ deleted: true });
   }
   return fail(400, 'Unknown action.');
-}
+});

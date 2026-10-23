@@ -1,4 +1,4 @@
-import { CACHE_DAY, fail, json, methodNotAllowed } from './_lib/http';
+import { CACHE_DAY, fail, json, methodNotAllowed, safe } from './_lib/http';
 import { guard } from './_lib/guard';
 import { tmdb, tmdbConfigured, TmdbError } from './_lib/tmdb';
 import { BadRequest, discoverParams, slimTitle, type RawTitle } from './_lib/validate';
@@ -11,7 +11,7 @@ interface DiscoverPage {
 }
 
 /** GET /api/pull: one page of discover results for the booth's filters. Cached at the edge. */
-export async function GET(req: Request): Promise<Response> {
+export const GET = safe(async (req: Request): Promise<Response> => {
   const g = await guard(req);
   if (g instanceof Response) return g;
   let request;
@@ -39,6 +39,6 @@ export async function GET(req: Request): Promise<Response> {
       'Movie data is unavailable right now.',
     );
   }
-}
+});
 
 export const POST = () => methodNotAllowed('GET');

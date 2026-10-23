@@ -19,6 +19,21 @@ export function fail(status: number, message: string, headers: Record<string, st
   return json({ error: message }, status, headers);
 }
 
+/**
+ * Wraps a route so an unexpected error is logged (visible in Vercel's function logs) and
+ * answered with JSON, instead of the platform's bare 500 page.
+ */
+export function safe(handler: (req: Request) => Response | Promise<Response>) {
+  return async (req: Request): Promise<Response> => {
+    try {
+      return await handler(req);
+    } catch (e) {
+      console.error(`${req.method} ${new URL(req.url, 'http://local').pathname} failed:`, e);
+      return fail(500, 'Something went wrong on our side. Try again in a moment.');
+    }
+  };
+}
+
 export function tooMany(resetMs: number) {
   const seconds = Math.max(1, Math.ceil((resetMs - Date.now()) / 1000));
   return fail(429, 'Too many requests. Try again in a moment.', { 'retry-after': String(seconds) });

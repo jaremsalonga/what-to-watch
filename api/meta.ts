@@ -1,4 +1,4 @@
-import { CACHE_WEEK, fail, json, methodNotAllowed } from './_lib/http';
+import { CACHE_WEEK, fail, json, methodNotAllowed, safe } from './_lib/http';
 import { guard } from './_lib/guard';
 import { tmdb, tmdbConfigured } from './_lib/tmdb';
 import { BadRequest, mediaType, region } from './_lib/validate';
@@ -24,7 +24,7 @@ interface RegionList {
  * GET /api/meta?kind=regions
  * Lists that rarely change, cached for a week.
  */
-export async function GET(req: Request): Promise<Response> {
+export const GET = safe(async (req: Request): Promise<Response> => {
   const g = await guard(req);
   if (g instanceof Response) return g;
   const q = new URL(req.url).searchParams;
@@ -66,6 +66,6 @@ export async function GET(req: Request): Promise<Response> {
     if (e instanceof BadRequest) return fail(400, e.message);
     return fail(502, 'Movie data is unavailable right now.');
   }
-}
+});
 
 export const POST = () => methodNotAllowed('GET');

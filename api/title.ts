@@ -1,4 +1,4 @@
-import { CACHE_DAY, fail, json, methodNotAllowed } from './_lib/http';
+import { CACHE_DAY, fail, json, methodNotAllowed, safe } from './_lib/http';
 import { guard } from './_lib/guard';
 import { tmdb, tmdbConfigured } from './_lib/tmdb';
 import { BadRequest, intIn, mediaType, region } from './_lib/validate';
@@ -43,7 +43,7 @@ const slimProviders = (list: Provider[] = []) =>
   list.slice(0, 12).map((p) => ({ id: p.provider_id, name: p.provider_name, logo: p.logo_path }));
 
 /** GET /api/title?type=movie&id=129&region=PH: runtime, trailer and where it streams. */
-export async function GET(req: Request): Promise<Response> {
+export const GET = safe(async (req: Request): Promise<Response> => {
   const g = await guard(req);
   if (g instanceof Response) return g;
   const q = new URL(req.url).searchParams;
@@ -98,6 +98,6 @@ export async function GET(req: Request): Promise<Response> {
     if (e instanceof BadRequest) return fail(400, e.message);
     return fail(502, 'Movie data is unavailable right now.');
   }
-}
+});
 
 export const POST = () => methodNotAllowed('GET');
