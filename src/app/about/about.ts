@@ -26,10 +26,8 @@ import { CONTACT_EMAIL, contactUrl } from '../core/links';
     <section>
       <h2>Privacy</h2>
       <p class="note">
-        If you give a name, we store it with the date you joined and simple counts (tickets pulled,
-        films marked seen), so we can see how many people use the app. Your IP address is only used
-        to stop abuse: it's kept as a scrambled code, never as the address itself. Your filters,
-        services and lists stay on this device. You can delete your name any time in Settings.
+        We keep your name and a few simple counts, like tickets pulled. Your filters and lists stay
+        on this phone. Delete your name any time in Settings.
       </p>
     </section>
     <section>
