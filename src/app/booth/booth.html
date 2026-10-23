@@ -328,10 +328,10 @@
           (again)="again()"
           (skip)="skip()"
           (seen)="seen()"
-          (later)="later()"
-          (share)="shareTicket()"
-          [detailsFailed]="detailsFailed()"
-          (retry)="retryDetails()"
+          (later)="desk.later()"
+          (share)="desk.openShare()"
+          [detailsFailed]="desk.detailsFailed()"
+          (retry)="desk.retryDetails()"
         />
       </div>
     }

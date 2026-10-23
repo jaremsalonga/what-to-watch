@@ -6,10 +6,11 @@ import { AppState } from './core/state';
 import { Sound } from './core/sound';
 import { Onboarding } from './onboarding/onboarding';
 import { ShareCard } from './share/share-card';
+import { AwayTicket } from './ticket/away-ticket';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Onboarding, ShareCard],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Onboarding, ShareCard, AwayTicket],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
