@@ -217,3 +217,12 @@
   text-align: right;
   opacity: 0.7;
 }
+
+.where .note {
+  margin: 0;
+  color: color-mix(in oklch, var(--ticket-ink) 75%, transparent);
+  a {
+    color: var(--ticket-ink);
+    font-weight: 700;
+  }
+}

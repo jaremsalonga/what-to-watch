@@ -45,6 +45,13 @@
     <div class="where">
       @if (cinemas()) {
         <span class="label">Showing in cinemas</span>
+      } @else if (!details() && detailsFailed()) {
+        <span class="label">Couldn't check where it streams</span>
+        <p class="note small">
+          <button type="button" class="link" (click)="retry.emit()">Try again</button>
+          or
+          <a [href]="tmdbWatch()" target="_blank" rel="noopener noreferrer">see it on TMDB</a>
+        </p>
       } @else if (!details()) {
         <span class="label">Checking where it streams…</span>
       } @else if (stream().length) {
