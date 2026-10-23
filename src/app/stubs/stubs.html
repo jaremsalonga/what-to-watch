@@ -1,0 +1,84 @@
+<header class="head">
+  <h1 class="h">Stubs</h1>
+  <div class="segmented" role="tablist" aria-label="Stub book">
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="tab() === 'later'"
+      (click)="setTab('later')"
+    >
+      Saved for later <b>{{ state.later().length }}</b>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="tab() === 'seen'"
+      (click)="setTab('seen')"
+    >
+      Seen it <b>{{ state.seen().length }}</b>
+    </button>
+  </div>
+</header>
+
+@if (list().length) {
+  <ul class="book" role="tabpanel">
+    @for (s of list(); track key(s)) {
+      <li class="stub" [class.torn]="tab() === 'seen'" [class.tearing]="tearing() === key(s)">
+        <div class="main">
+          @if (poster(s.poster); as src) {
+            <img class="poster" [src]="src" alt="" width="56" height="84" loading="lazy" />
+          } @else {
+            <div class="poster blank" aria-hidden="true"></div>
+          }
+          <div class="info">
+            <span class="kicker">
+              {{ tab() === 'seen' ? 'Seen' : 'Admit one' }} · No. {{ number(s) }}
+            </span>
+            <h2>{{ s.title }}</h2>
+            <span class="meta">
+              {{ s.year ? s.year + ' · ' : '' }}{{ s.type === 'tv' ? 'Series' : 'Movie' }} ·
+              {{ date(s.at) }}
+            </span>
+            <div class="acts">
+              @if (tab() === 'later') {
+                <button type="button" class="act strong" (click)="tear(s)">Seen it · tear</button>
+                <button type="button" class="act" (click)="remove(s)">Remove</button>
+              } @else {
+                <button type="button" class="act strong" (click)="shareStub(s)">
+                  Share a story
+                </button>
+                <button type="button" class="act" (click)="unsee(s)">Undo</button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="end" aria-hidden="true">
+          <span>{{ name() }}</span>
+        </div>
+        @if (tab() === 'seen') {
+          <span class="stamp" aria-hidden="true">Seen</span>
+        }
+      </li>
+    }
+  </ul>
+  @if (total() > list().length) {
+    <button type="button" class="btn ghost" (click)="limit.set(limit() + 40)">
+      Show more ({{ total() - list().length }})
+    </button>
+  }
+  @if (tab() === 'seen') {
+    <p class="note">Seen titles never come up in the booth again. Undo brings one back.</p>
+  }
+} @else {
+  <div class="empty">
+    <div class="ghost-stub" aria-hidden="true"></div>
+    @if (tab() === 'later') {
+      <p>No saved tickets yet.</p>
+      <p class="note">Tap "Save for later" on a ticket and it lands here.</p>
+    } @else {
+      <p>No torn stubs yet.</p>
+      <p class="note">Mark a ticket "Seen it" and its stub gets torn and kept here.</p>
+    }
+    <a class="btn" routerLink="/">Roll the film</a>
+  </div>
+}

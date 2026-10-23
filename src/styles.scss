@@ -1,0 +1,195 @@
+/*
+ * What to Watch? is a night-time screen: people on a couch with the lights down, deciding
+ * together. One dark theme by choice. Indigo night, projector-lamp amber, ticket mint.
+ */
+:root {
+  --night: oklch(0.19 0.045 275);
+  --night-2: oklch(0.24 0.05 275);
+  --night-3: oklch(0.32 0.05 275);
+  --gate: oklch(0.13 0.025 275);
+  --fg: oklch(0.95 0.012 275);
+  --dim: oklch(0.74 0.03 275);
+  --lamp: oklch(0.82 0.15 78);
+  --lamp-deep: oklch(0.64 0.14 62);
+  --ticket: oklch(0.93 0.055 165);
+  --ticket-ink: oklch(0.28 0.06 200);
+  --red: oklch(0.68 0.17 25);
+
+  --display: 'Big Shoulders Display', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --body: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--night);
+  color: var(--fg);
+  font: 16px/1.5 var(--body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--lamp);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ticket);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Shared pieces */
+.label {
+  font: 600 0.66rem/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.chip {
+  appearance: none;
+  border: 1px solid var(--night-3);
+  background: transparent;
+  color: var(--dim);
+  font: 500 0.82rem/1 var(--body);
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-out),
+    color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out);
+}
+.chip:hover {
+  border-color: var(--dim);
+  color: var(--fg);
+}
+.chip[aria-pressed='true'],
+.chip.on {
+  background: var(--ticket);
+  border-color: var(--ticket);
+  color: var(--ticket-ink);
+  font-weight: 700;
+}
+.chip.surprise {
+  border-style: dashed;
+  color: var(--lamp);
+}
+.chip.surprise[aria-pressed='true'] {
+  background: var(--lamp);
+  border-color: var(--lamp);
+  color: var(--night);
+}
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.btn {
+  appearance: none;
+  border: 0;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 10px;
+  background: var(--lamp);
+  color: var(--night);
+  font: 900 1.45rem/1 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--lamp-deep);
+  transition:
+    transform 120ms var(--ease-out),
+    box-shadow 120ms var(--ease-out);
+  text-decoration: none;
+  display: block;
+  text-align: center;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--lamp-deep);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--fg);
+  box-shadow: none;
+  border: 1px solid var(--night-3);
+  font: 700 0.9rem/1 var(--body);
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0.75rem;
+}
+.btn.ghost:hover {
+  border-color: var(--dim);
+}
+
+.field {
+  width: 100%;
+  background: var(--night-2);
+  border: 1.5px solid var(--night-3);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  font-size: 1rem;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--lamp);
+}
+
+.note {
+  font-size: 0.85rem;
+  color: var(--dim);
+  margin: 0;
+}
+
+.alert {
+  border: 1px solid var(--night-3);
+  background: var(--night-2);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.88rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}

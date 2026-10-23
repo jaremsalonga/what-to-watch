@@ -1,0 +1,219 @@
+:host {
+  display: block;
+}
+
+.ticket-card {
+  background: var(--ticket);
+  color: var(--ticket-ink);
+  border-radius: 10px;
+  padding: 14px 14px 10px;
+  display: grid;
+  gap: 12px;
+  .label {
+    color: color-mix(in oklch, var(--ticket-ink) 75%, transparent);
+  }
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1.5px dashed color-mix(in oklch, var(--ticket-ink) 30%, transparent);
+}
+
+.body {
+  display: flex;
+  gap: 12px;
+}
+
+.poster {
+  flex: none;
+  width: 104px;
+  height: 156px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--night-3);
+  &.blank {
+    display: flex;
+    align-items: flex-end;
+    padding: 8px;
+    color: var(--fg);
+    font: 800 1rem/1 var(--display);
+    text-transform: uppercase;
+  }
+}
+
+.info {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  h2 {
+    margin: 0;
+    font: 900 1.9rem/0.95 var(--display);
+    text-transform: uppercase;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+}
+
+.meta,
+.genres {
+  margin: 0;
+  font: 400 0.72rem/1.4 var(--mono);
+}
+
+.synopsis {
+  display: grid;
+  gap: 4px;
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+  .clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+.link,
+.text {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  cursor: pointer;
+  font: 600 0.8rem/1.2 var(--body);
+  color: var(--ticket-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  justify-self: start;
+}
+
+.stub-row {
+  display: grid;
+  grid-template-columns: 1fr 52px;
+  border-top: 1.5px dashed color-mix(in oklch, var(--ticket-ink) 30%, transparent);
+  padding-top: 10px;
+}
+
+.where {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.providers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 32px;
+    font: 700 0.78rem/1 var(--body);
+    padding: 5px 8px 5px 5px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in oklch, var(--ticket-ink) 35%, transparent);
+    color: var(--ticket-ink);
+    text-decoration: none;
+    transition:
+      transform 120ms var(--ease-out),
+      background 120ms;
+    &:hover {
+      background: color-mix(in oklch, var(--ticket-ink) 10%, transparent);
+    }
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+  a.mine {
+    background: var(--ticket-ink);
+    color: var(--ticket);
+    border-color: var(--ticket-ink);
+  }
+  .go {
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+  img {
+    border-radius: 4px;
+  }
+}
+
+.small {
+  font-size: 0.78rem;
+}
+
+.stub {
+  border-left: 1.5px dashed color-mix(in oklch, var(--ticket-ink) 40%, transparent);
+  display: grid;
+  place-items: center;
+  span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font: 900 1rem/1 var(--display);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    max-height: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.actions {
+  display: grid;
+  gap: 8px;
+  .btn {
+    background: var(--ticket-ink);
+    color: var(--ticket);
+    box-shadow: 0 4px 0 oklch(0.2 0.05 200);
+    font-size: 1.2rem;
+  }
+  .btn.ghost {
+    background: transparent;
+    color: var(--ticket-ink);
+    border-color: color-mix(in oklch, var(--ticket-ink) 35%, transparent);
+    box-shadow: none;
+    font-size: 0.85rem;
+  }
+  .btn.share {
+    font-size: 1.05rem;
+  }
+  .btn.ghost[aria-pressed='true'] {
+    background: color-mix(in oklch, var(--ticket-ink) 12%, transparent);
+  }
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  > * {
+    flex: 1;
+  }
+  &.small {
+    justify-content: space-between;
+    > * {
+      flex: none;
+    }
+  }
+}
+
+.strong {
+  font-weight: 800;
+}
+
+.credit {
+  margin: 0;
+  font: 400 0.62rem/1 var(--mono);
+  text-align: right;
+  opacity: 0.7;
+}

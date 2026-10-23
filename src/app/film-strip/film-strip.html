@@ -1,0 +1,108 @@
+<div class="booth" [class.running]="running()">
+  <div class="bulbs" [class.chase]="running() || count() !== null" aria-hidden="true">
+    @for (b of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]; track b) {
+      <i></i>
+    }
+  </div>
+  <div class="marquee" aria-hidden="true">
+    {{
+      count() !== null
+        ? 'Lights down'
+        : running()
+          ? 'Now rolling'
+          : landed()
+            ? 'Printed!'
+            : locked()
+              ? 'Tonight’s feature'
+              : 'Pull the lever'
+    }}
+  </div>
+
+  <div class="stage">
+    <div
+      class="gate"
+      #gate
+      aria-hidden="true"
+      [style.--pull]="dragging() ? lever() / 96 : 0"
+      (pointerdown)="down($event, 'gate')"
+      (pointermove)="move($event)"
+      (pointerup)="up()"
+      (pointercancel)="up()"
+    >
+      <div class="beam"></div>
+      <div class="strip" #strip>
+        @if (frames().length) {
+          @for (f of frames(); track $index) {
+            <div class="frame">
+              @if (poster(f.poster, 'w342'); as src) {
+                <img
+                  [src]="src"
+                  alt=""
+                  width="150"
+                  height="225"
+                  loading="eager"
+                  decoding="async"
+                  draggable="false"
+                  (error)="$any($event.target).hidden = true"
+                />
+                <span>{{ f.title }}</span>
+              } @else {
+                <span>{{ f.title }}</span>
+              }
+            </div>
+          }
+        } @else if (idle(); as t) {
+          <div class="frame">
+            @if (poster(t.poster, 'w342'); as src) {
+              <img [src]="src" alt="" width="150" height="225" draggable="false" />
+            } @else {
+              <span>{{ t.title }}</span>
+            }
+          </div>
+        } @else {
+          <div class="frame blank"><span>What</span></div>
+          <div class="frame blank"><span>to watch?</span></div>
+          <div class="frame blank"><span>Roll</span></div>
+        }
+      </div>
+      <div class="aperture"><i></i><i></i><i></i><i></i></div>
+
+      @if (count(); as n) {
+        <div class="leader">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="78" class="ring" />
+            <circle cx="100" cy="100" r="62" class="ring thin" />
+            <path d="M100 6V194M6 100H194" class="cross" />
+            @for (k of [n]; track k) {
+              <circle cx="100" cy="100" r="39" class="sweep" pathLength="100" />
+            }
+          </svg>
+          @for (k of [n]; track k) {
+            <span class="num">{{ k }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="lever"
+      [class.dragging]="dragging()"
+      [disabled]="locked()"
+      [style.--y.px]="lever()"
+      aria-label="Pull the lever to roll"
+      (pointerdown)="down($event, 'lever')"
+      (pointermove)="move($event)"
+      (pointerup)="up()"
+      (pointercancel)="up()"
+      (keydown.enter)="key($event)"
+      (keydown.space)="key($event)"
+    >
+      <span class="track"></span>
+      <span class="arm"></span>
+      <span class="knob"></span>
+    </button>
+  </div>
+
+  <div class="slot" aria-hidden="true"></div>
+</div>

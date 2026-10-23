@@ -1,0 +1,337 @@
+<app-film-strip
+  [idle]="last()?.title ?? null"
+  [locked]="rolling() || busyFor() > 0"
+  (pull)="roll()"
+/>
+
+<section class="filters" aria-label="Filters">
+  <div class="moods" role="group" aria-label="Mood">
+    @for (m of moods; track m.id) {
+      <button
+        type="button"
+        class="chip"
+        [attr.aria-pressed]="f().mood === m.id"
+        (click)="setMood(m.id)"
+      >
+        {{ m.label }}
+      </button>
+    }
+  </div>
+
+  <div class="quick">
+    <div class="segmented" role="group" aria-label="Watch">
+      @for (t of types; track t.id) {
+        <button
+          type="button"
+          [attr.aria-pressed]="f().type === t.id"
+          [disabled]="cinemasOnly() && t.id !== 'movie'"
+          (click)="setType(t.id)"
+        >
+          {{ t.label }}
+        </button>
+      }
+    </div>
+    <label class="pill-select">
+      <span class="visually-hidden">{{
+        f().type === 'tv' ? 'Episode length' : 'How much time'
+      }}</span>
+      <select #time [value]="f().time" (change)="setTime(time.value)">
+        @for (t of times; track t.id) {
+          <option [value]="t.id">{{ f().type === 'tv' ? t.tvLabel : t.label }}</option>
+        }
+      </select>
+    </label>
+    <button
+      type="button"
+      class="filter-btn"
+      (click)="openFilters()"
+      aria-haspopup="dialog"
+      [attr.aria-label]="'Filters' + (active().length ? ', ' + active().length + ' on' : '')"
+    >
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path
+          d="M2 4h12M4.5 8h7M7 12h2"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+      @if (active().length) {
+        <b class="count">{{ active().length }}</b>
+      }
+    </button>
+  </div>
+
+  @if (active().length) {
+    <div class="refine">
+      @for (a of active(); track a.key) {
+        <button
+          type="button"
+          class="chip on removable"
+          (click)="a.remove()"
+          [attr.aria-label]="'Remove ' + a.label"
+        >
+          {{ a.label }} <span aria-hidden="true">×</span>
+        </button>
+      }
+    </div>
+  }
+</section>
+
+<p class="services">{{ servicesLine() }} · <a routerLink="/settings">Change</a></p>
+
+<div class="go">
+  @if (busyFor() > 0) {
+    <p class="alert" role="status">The booth is busy. Try again in {{ busyFor() }}s.</p>
+  } @else if (message(); as m) {
+    <p class="alert" role="status">{{ m }}</p>
+  }
+  <div class="go-row">
+    <button type="button" class="btn" (click)="roll()" [disabled]="rolling() || busyFor() > 0">
+      {{ rolling() ? 'Rolling…' : last() ? 'Roll again' : 'Roll film' }}
+    </button>
+    <button
+      type="button"
+      class="surprise"
+      (click)="roll(true)"
+      [disabled]="rolling() || busyFor() > 0"
+      title="Surprise me: a hidden gem, highly rated but little seen"
+    >
+      <span aria-hidden="true">🎲</span>
+      <span>Surprise</span>
+    </button>
+  </div>
+  <div class="go-meta">
+    @if (last(); as l) {
+      @if (!rolling()) {
+        <button type="button" class="text" (click)="openTicket()">
+          Last ticket: {{ l.title.title }}
+        </button>
+      }
+    }
+  </div>
+</div>
+
+<dialog #sheet class="sheet" aria-labelledby="sheet-title" (click)="backdrop($event, sheet)">
+  <div class="sheet-body">
+    <header class="sheet-head">
+      <h2 id="sheet-title">Filters</h2>
+      <button type="button" class="text" (click)="resetFilters()" [disabled]="!active().length">
+        Reset
+      </button>
+    </header>
+
+    <section class="sheet-section" aria-labelledby="where-title">
+      <h3 id="where-title" class="label">Where to watch · {{ state.region() }}</h3>
+      <div class="segmented" role="group" aria-labelledby="where-title">
+        <button
+          type="button"
+          [attr.aria-pressed]="availability() === 'mine'"
+          [disabled]="!state.services().length"
+          (click)="setAvailability('mine')"
+        >
+          My services
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="availability() === 'streaming'"
+          (click)="setAvailability('streaming')"
+        >
+          Any service
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="availability() === 'any'"
+          (click)="setAvailability('any')"
+        >
+          Anywhere
+        </button>
+      </div>
+      <p class="note">
+        @switch (availability()) {
+          @case ('mine') {
+            Only titles streaming on the services you picked.
+            <a routerLink="/settings" (click)="closeFilters()">Change services</a>
+          }
+          @case ('streaming') {
+            Titles on any subscription, free or ad-supported service in your country.
+            @if (!state.services().length) {
+              <a routerLink="/settings" (click)="closeFilters()">Pick your services</a>
+            }
+          }
+          @default {
+            Includes titles you can only rent, buy or find elsewhere.
+          }
+        }
+      </p>
+    </section>
+
+    <section class="sheet-section" aria-labelledby="genre-title">
+      <div class="section-head">
+        <h3 id="genre-title" class="label">Genres</h3>
+        <span class="legend"
+          ><i class="dot on"></i> Tap to include <i class="dot blocked"></i> Tap again to never
+          show</span
+        >
+      </div>
+      <div class="genre-grid">
+        @for (g of genreList(); track g.id) {
+          <button
+            type="button"
+            class="chip"
+            [class.on]="genreState(g.id) === 'on'"
+            [class.blocked]="genreState(g.id) === 'blocked'"
+            [attr.aria-label]="
+              g.name +
+              (genreState(g.id) === 'on'
+                ? ', included'
+                : genreState(g.id) === 'blocked'
+                  ? ', never show'
+                  : '')
+            "
+            (click)="tapGenre(g.id)"
+          >
+            {{ g.name }}
+          </button>
+        }
+      </div>
+      @if (f().genres.length > 1) {
+        <div class="segmented small" role="group" aria-label="Match">
+          <button
+            type="button"
+            [attr.aria-pressed]="f().match === 'any'"
+            (click)="state.patchFilters({ match: 'any' })"
+          >
+            Any of these
+          </button>
+          <button
+            type="button"
+            [attr.aria-pressed]="f().match === 'all'"
+            (click)="state.patchFilters({ match: 'all' })"
+          >
+            All of these
+          </button>
+        </div>
+      }
+      @if (f().genres.length) {
+        <p class="note">Included genres replace the mood’s genres.</p>
+      }
+    </section>
+
+    <section class="sheet-section" aria-labelledby="lang-title">
+      <h3 id="lang-title" class="label">Language</h3>
+      <div class="chips">
+        @for (l of languages; track l.id) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().languages.includes(l.id)"
+            (click)="toggleLanguage(l.id)"
+          >
+            {{ l.label }}
+          </button>
+        }
+      </div>
+      <p class="note">
+        The language it was made in. Pick a few and each roll uses one of them; none means any
+        language.
+      </p>
+    </section>
+
+    <section class="sheet-section" aria-labelledby="release-title">
+      <h3 id="release-title" class="label">Release date</h3>
+      <div class="chips">
+        @for (r of releases; track r.id) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="f().release.includes(r.id)"
+            (click)="toggleRelease(r.id)"
+          >
+            {{ r.label }}
+          </button>
+        }
+      </div>
+      <div class="range">
+        <label>
+          <span class="label">From year</span>
+          <select
+            class="field"
+            #from
+            [value]="f().years?.from ?? ''"
+            (change)="setYears(from.value, to.value || from.value)"
+          >
+            <option value="">Any</option>
+            @for (y of years; track y) {
+              <option [value]="y">{{ y }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span class="label">To year</span>
+          <select
+            class="field"
+            #to
+            [value]="f().years?.to ?? ''"
+            (change)="setYears(from.value || to.value, to.value)"
+          >
+            <option value="">Any</option>
+            @for (y of years; track y) {
+              <option [value]="y">{{ y }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="sheet-section" aria-labelledby="rating-title">
+      <h3 id="rating-title" class="label">Rating</h3>
+      <div class="segmented" role="group" aria-labelledby="rating-title">
+        @for (r of ratings; track r) {
+          <button
+            type="button"
+            [attr.aria-pressed]="f().minRating === r"
+            (click)="state.patchFilters({ minRating: r })"
+          >
+            {{ r ? r + '★+' : 'Any' }}
+          </button>
+        }
+      </div>
+    </section>
+  </div>
+
+  <footer class="sheet-foot">
+    <button type="button" class="btn" (click)="closeFilters()">Done</button>
+  </footer>
+</dialog>
+
+<dialog
+  #reveal
+  class="reveal"
+  aria-label="Your ticket"
+  (click)="backdrop($event, reveal)"
+  (close)="showTicket.set(false)"
+>
+  @if (last(); as l) {
+    @if (showTicket()) {
+      <div class="reveal-inner">
+        <button type="button" class="close" (click)="closeTicket()">Back to the booth</button>
+        <app-ticket
+          [title]="l.title"
+          [details]="l.details"
+          [services]="state.services()"
+          [name]="state.profile()?.name ?? null"
+          [cinemas]="l.cinemas"
+          [surprise]="l.surprise"
+          [number]="l.number"
+          [isLater]="state.isLater(l.title.id, l.title.type)"
+          (again)="again()"
+          (skip)="skip()"
+          (seen)="seen()"
+          (later)="later()"
+          (share)="shareTicket()"
+        />
+      </div>
+    }
+  }
+</dialog>

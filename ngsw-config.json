@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.csr.html",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "posters",
+      "urls": ["https://image.tmdb.org/t/p/**"],
+      "cacheConfig": { "strategy": "performance", "maxSize": 300, "maxAge": "30d" }
+    },
+    {
+      "name": "lists",
+      "urls": ["/api/meta**"],
+      "cacheConfig": { "strategy": "freshness", "maxSize": 20, "maxAge": "7d", "timeout": "4s" }
+    },
+    {
+      "name": "titles",
+      "urls": ["/api/title**", "/api/pull**"],
+      "cacheConfig": { "strategy": "freshness", "maxSize": 100, "maxAge": "1d", "timeout": "6s" }
+    }
+  ]
+}

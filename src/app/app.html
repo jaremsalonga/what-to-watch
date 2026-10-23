@@ -1,0 +1,56 @@
+<div class="shell">
+  <header class="top">
+    <a routerLink="/" class="logo" aria-label="What to Watch? home">What to <span>Watch?</span></a>
+    <div class="top-right">
+      @if (state.profile(); as p) {
+        <span class="hello">Hi, {{ p.name }}</span>
+      }
+      <button
+        type="button"
+        class="sound"
+        (click)="sound.toggleMute()"
+        [attr.aria-pressed]="!sound.muted()"
+        [attr.aria-label]="sound.muted() ? 'Turn music and sound on' : 'Turn music and sound off'"
+        [title]="sound.muted() ? 'Sound off' : 'Sound on'"
+      >
+        @if (sound.muted()) {
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9h4l5-4v14l-5-4H4z" />
+            <path d="m17 9 5 6m0-6-5 6" />
+          </svg>
+        } @else {
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9h4l5-4v14l-5-4H4z" />
+            <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+          </svg>
+        }
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <router-outlet />
+  </main>
+
+  @if (!isAdmin()) {
+    <nav class="tabs" aria-label="Main">
+      @for (item of nav; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
+          >{{ item.label }}
+          @if (item.path === '/stubs' && stubCount()) {
+            <b class="count">{{ stubCount() }}</b>
+          }
+        </a>
+      }
+    </nav>
+  }
+</div>
+
+@if (!state.onboarded() && !isAdmin()) {
+  <app-onboarding />
+}
+<app-share-card />

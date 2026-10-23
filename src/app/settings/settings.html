@@ -1,0 +1,69 @@
+<h1 class="h">Settings</h1>
+
+<section>
+  <h2>Your name</h2>
+  <form class="inline" (submit)="saveName($event)">
+    <label for="name" class="visually-hidden">Your name</label>
+    <input
+      id="name"
+      class="field"
+      maxlength="20"
+      [value]="nameDraft()"
+      (input)="nameDraft.set($any($event.target).value)"
+      placeholder="What should we call you?"
+    />
+    <button class="btn ghost" type="submit">Save</button>
+  </form>
+  @if (state.profile()) {
+    @if (confirmDelete()) {
+      <div class="confirm">
+        <span>Delete your name from this device and our server?</span>
+        <button type="button" class="btn ghost danger" (click)="deleteName()">Delete</button>
+        <button type="button" class="btn ghost" (click)="confirmDelete.set(false)">Keep</button>
+      </div>
+    } @else {
+      <button type="button" class="text" (click)="confirmDelete.set(true)">Delete my name</button>
+    }
+  }
+  @if (status(); as s) {
+    <p class="note" role="status">{{ s }}</p>
+  }
+</section>
+
+<section>
+  <h2>Country</h2>
+  <label for="region" class="visually-hidden">Country</label>
+  <select
+    id="region"
+    class="field"
+    [value]="state.region()"
+    (change)="setRegion($any($event.target).value)"
+  >
+    @if (!regions().length) {
+      <option [value]="state.region()">{{ state.region() }}</option>
+    }
+    @for (r of regions(); track r.code) {
+      <option [value]="r.code" [selected]="r.code === state.region()">{{ r.name }}</option>
+    }
+  </select>
+  <p class="note">
+    Streaming services and "in cinemas" depend on your country. Detected from your device; change it
+    if it's wrong.
+  </p>
+</section>
+
+<section>
+  <h2>Your streaming services</h2>
+  <app-services-picker [limit]="24" />
+</section>
+
+<section>
+  <h2>Saved and seen</h2>
+  <p class="note">Your saved tickets and torn stubs live in <a routerLink="/stubs">Stubs</a>.</p>
+</section>
+
+<section>
+  <h2>Contact us</h2>
+  <p class="note">Found a bug, a wrong streaming link, or have an idea?</p>
+  <a class="btn ghost contact" [href]="contact">Email us</a>
+</section>
