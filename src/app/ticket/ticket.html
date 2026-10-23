@@ -2,10 +2,50 @@
   <section class="main">
     <header class="head">
       <span class="admit">Admit one</span>
-      <span class="serial">No. {{ serial() }}</span>
+      <div class="tools">
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label="Share a story"
+          title="Share a story"
+          (click)="share.emit()"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path
+              d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="icon-btn"
+          [attr.aria-pressed]="isLater()"
+          [attr.aria-label]="isLater() ? 'Saved for later' : 'Save for later'"
+          [title]="isLater() ? 'Saved for later' : 'Save for later'"
+          (click)="later.emit()"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path
+              d="M6 3.5h12v17l-6-4.2-6 4.2z"
+              [attr.fill]="isLater() ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
     </header>
     <p class="kicker">
-      <span>{{ surprise() ? 'Hidden gem' : cinemas() ? 'Now showing' : "Tonight's pick" }}</span>
+      <span
+        >{{ surprise() ? 'Hidden gem' : cinemas() ? 'Now showing' : "Tonight's pick" }} · No.
+        {{ serial() }}</span
+      >
       <span>{{ today }}</span>
     </p>
 
@@ -119,18 +159,40 @@
 }
 
 <div class="actions">
-  <button type="button" class="btn" (click)="share.emit()">Share a story</button>
-  <div class="row">
+  <div class="tiles">
     @if (trailer(); as href) {
-      <a class="btn ghost" [href]="href" target="_blank" rel="noopener noreferrer">Watch trailer</a>
+      <a class="tile" [href]="href" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+        </svg>
+        Trailer
+      </a>
     }
-    <button type="button" class="btn ghost" (click)="later.emit()" [attr.aria-pressed]="isLater()">
-      {{ isLater() ? 'Saved for later ✓' : 'Save for later' }}
+    <button type="button" class="tile" (click)="seen.emit()">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path
+          d="M5 12.5 10 17.5 19 7"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      Seen it
+    </button>
+    <button type="button" class="tile" (click)="skip.emit()">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path
+          d="M6.5 6.5l11 11M17.5 6.5l-11 11"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+      </svg>
+      Not this one
     </button>
   </div>
-  <div class="row text-row">
-    <button type="button" class="text" (click)="seen.emit()">Seen it · tear stub</button>
-    <button type="button" class="text" (click)="skip.emit()">Not this one</button>
-    <button type="button" class="text strong" (click)="again.emit()">Roll again ↻</button>
-  </div>
+  <button type="button" class="btn" (click)="again.emit()">Roll again ↻</button>
 </div>
