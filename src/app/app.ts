@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { AppState } from './core/state';
 import { Sound } from './core/sound';
+import { Updates } from './core/updates';
 import { Onboarding } from './onboarding/onboarding';
 import { ShareCard } from './share/share-card';
 import { AwayTicket } from './ticket/away-ticket';
@@ -35,6 +36,7 @@ export class App {
   protected readonly stubCount = computed(() => this.state.later().length);
 
   constructor() {
+    inject(Updates).start();
     // Browsers only allow audio after a tap, so the lobby music starts on the first one,
     // anywhere in the app, and then keeps playing in the background. iOS only counts some
     // gestures (touchend and click, not touchstart), so listen to all of them until it plays.
