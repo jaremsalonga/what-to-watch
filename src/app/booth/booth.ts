@@ -68,6 +68,7 @@ export class Booth implements OnInit, OnDestroy {
   /** The ticket's details couldn't be loaded, so it offers a retry instead of "Checking…". */
   protected readonly detailsFailed = signal(false);
   private loadingDetails = false;
+  private destroyed = false;
   /** "Roll again" on a hidden gem rolls another hidden gem. */
   private lastWasSurprise = false;
   private busyTimer: ReturnType<typeof setInterval> | null = null;
@@ -155,7 +156,10 @@ export class Booth implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroyed = true;
     if (this.busyTimer) clearInterval(this.busyTimer);
+    // Leaving mid-roll: the music goes back to lobby level and the roll stops making sounds.
+    if (this.rolling()) this.sound.boost(false);
   }
 
   protected setMood(m: Mood) {
@@ -260,18 +264,24 @@ export class Booth implements OnInit, OnDestroy {
     this.sound.startMusic();
     this.sound.boost(true);
     try {
-      const result = await this.strip().countdown(this.picker.pull(Math.random, surprise), () =>
-        this.sound.beep(),
+      const result = await this.strip().countdown(
+        this.picker.pull(Math.random, surprise),
+        () => !this.destroyed && this.sound.beep(),
       );
+      if (this.destroyed) return;
       const w = result.winner;
       const details = this.fetchDetails(w);
       await this.strip().run(result.reel, () => {
+        if (this.destroyed) return;
         this.sound.tick();
         navigator.vibrate?.(4);
       });
       this.sound.boost(false);
-      this.sound.ding();
-      navigator.vibrate?.([20, 40, 30]);
+      // Left the booth mid-roll: keep the pick as "Last ticket", without the bell or the pop-up.
+      if (!this.destroyed) {
+        this.sound.ding();
+        navigator.vibrate?.([20, 40, 30]);
+      }
       const number = this.state.pulls() + 1;
       this.state.pulls.set(number);
       this.detailsFailed.set(false);
@@ -283,7 +293,7 @@ export class Booth implements OnInit, OnDestroy {
         number,
       });
       this.api.event('pull');
-      this.openTicket();
+      if (!this.destroyed) this.openTicket();
       this.applyDetails(w, await details);
     } catch (e) {
       this.sound.boost(false);
