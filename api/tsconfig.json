@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "strict": true,
-    "noEmit": true,
     "target": "ES2022",
-    "module": "preserve",
-    "moduleResolution": "bundler",
+    "module": "commonjs",
+    "moduleResolution": "node10",
+    "esModuleInterop": true,
     "lib": ["ES2022", "DOM"],
     "types": ["node"],
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["api/**/*.ts"]
+  "include": ["**/*.ts"]
 }

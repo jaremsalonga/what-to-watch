@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:api": "vitest run --config vitest.api.config.mts",
-    "typecheck:api": "tsc -p tsconfig.api.json"
+    "typecheck:api": "tsc -p api/tsconfig.json --noEmit"
   },
   "private": true,
   "packageManager": "npm@10.9.4",
