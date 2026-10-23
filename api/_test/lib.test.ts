@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { isCrossSite, clientIp } from '../_lib/http';
-import { MemoryLimiter } from '../_lib/limits';
+import { isCrossSite, clientIp } from '../_lib/http.js';
+import { MemoryLimiter } from '../_lib/limits.js';
 import {
   createOrReuse,
   recordEvent,
   sanitizeName,
   adminStats,
   deleteProfile,
-} from '../_lib/profiles';
-import { MemoryStore } from '../_lib/store';
-import { hashIp, sign, verify, profileToken, readProfile } from '../_lib/token';
-import { BadRequest, discoverParams } from '../_lib/validate';
-import { caller } from '../_lib/guard';
+} from '../_lib/profiles.js';
+import { MemoryStore } from '../_lib/store.js';
+import { hashIp, sign, verify, profileToken, readProfile } from '../_lib/token.js';
+import { BadRequest, discoverParams } from '../_lib/validate.js';
+import { caller } from '../_lib/guard.js';
 
 const q = (s: string) => new URLSearchParams(s);
 const req = (

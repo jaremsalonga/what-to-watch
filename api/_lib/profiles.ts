@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Store } from './store';
+import type { Store } from './store.js';
 
 const DAY = 86_400;
 

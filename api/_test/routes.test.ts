@@ -39,7 +39,7 @@ describe('API routes', () => {
       }),
     );
     vi.stubGlobal('fetch', fetchMock);
-    const { GET } = await import('../pull');
+    const { GET } = await import('../pull.js');
     const res = await GET(get('/api/pull?type=movie&genres=16&page=2'));
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toContain('s-maxage');
@@ -61,7 +61,7 @@ describe('API routes', () => {
   it('pull: rejects bad input and cross-site callers before calling TMDB', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    const { GET } = await import('../pull');
+    const { GET } = await import('../pull.js');
     expect((await GET(get('/api/pull?type=person'))).status).toBe(400);
     expect(
       (await GET(get('/api/pull?type=movie', { 'sec-fetch-site': 'cross-site' }))).status,
@@ -77,7 +77,7 @@ describe('API routes', () => {
       'fetch',
       vi.fn(async () => Response.json({ page: 1, total_pages: 1, total_results: 0, results: [] })),
     );
-    const { GET } = await import('../pull');
+    const { GET } = await import('../pull.js');
     expect((await GET(get('/api/pull?type=movie'))).status).toBe(200);
   });
 
@@ -86,7 +86,7 @@ describe('API routes', () => {
       'fetch',
       vi.fn(async () => Response.json({ page: 1, total_pages: 1, total_results: 0, results: [] })),
     );
-    const { GET } = await import('../pull');
+    const { GET } = await import('../pull.js');
     const statuses = [];
     for (let i = 0; i < 4; i++)
       statuses.push((await GET(get('/api/pull?type=movie', { 'x-real-ip': '7.7.7.7' }))).status);
@@ -96,12 +96,12 @@ describe('API routes', () => {
   it('pull: says so when TMDB is not configured', async () => {
     vi.stubEnv('TMDB_READ_TOKEN', '');
     vi.stubEnv('TMDB_API_KEY', '');
-    const { GET } = await import('../pull');
+    const { GET } = await import('../pull.js');
     expect((await GET(get('/api/pull?type=movie'))).status).toBe(503);
   });
 
   it('profile: creates a profile, returns the same one on retry, and limits new names per IP', async () => {
-    const { POST } = await import('../profile');
+    const { POST } = await import('../profile.js');
     const post = (name: string) =>
       POST(
         new Request(base + '/api/profile', {
@@ -126,7 +126,7 @@ describe('API routes', () => {
 
   it('admin: refuses without a session and with a wrong password', async () => {
     vi.stubEnv('ADMIN_PASSWORD', 'correct horse battery');
-    const { GET, POST } = await import('../admin');
+    const { GET, POST } = await import('../admin.js');
     expect((await GET(get('/api/admin'))).status).toBe(401);
     const login = (password: string) =>
       POST(

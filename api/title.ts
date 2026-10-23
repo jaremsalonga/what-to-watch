@@ -1,7 +1,7 @@
-import { CACHE_DAY, fail, json, methodNotAllowed, safe } from './_lib/http';
-import { guard } from './_lib/guard';
-import { tmdb, tmdbConfigured } from './_lib/tmdb';
-import { BadRequest, intIn, mediaType, region } from './_lib/validate';
+import { CACHE_DAY, fail, json, methodNotAllowed, safe } from './_lib/http.js';
+import { guard } from './_lib/guard.js';
+import { tmdb, tmdbConfigured } from './_lib/tmdb.js';
+import { BadRequest, intIn, mediaType, region } from './_lib/validate.js';
 
 interface Provider {
   provider_id: number;

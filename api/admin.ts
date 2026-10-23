@@ -1,8 +1,8 @@
-import { clientIp, cookie, fail, isCrossSite, json, readJson, tooMany, safe } from './_lib/http';
-import { limit } from './_lib/limits';
-import { adminStats, deleteProfile } from './_lib/profiles';
-import { store } from './_lib/store';
-import { safeEqual, sign, verify } from './_lib/token';
+import { clientIp, cookie, fail, isCrossSite, json, readJson, tooMany, safe } from './_lib/http.js';
+import { limit } from './_lib/limits.js';
+import { adminStats, deleteProfile } from './_lib/profiles.js';
+import { store } from './_lib/store.js';
+import { safeEqual, sign, verify } from './_lib/token.js';
 
 const COOKIE = 'wtw_admin';
 const SESSION_SECONDS = 12 * 3600;

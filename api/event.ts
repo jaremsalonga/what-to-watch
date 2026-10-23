@@ -1,7 +1,7 @@
-import { fail, json, methodNotAllowed, readJson, safe } from './_lib/http';
-import { guard } from './_lib/guard';
-import { recordEvent, type EventKind } from './_lib/profiles';
-import { store } from './_lib/store';
+import { fail, json, methodNotAllowed, readJson, safe } from './_lib/http.js';
+import { guard } from './_lib/guard.js';
+import { recordEvent, type EventKind } from './_lib/profiles.js';
+import { store } from './_lib/store.js';
 
 const KINDS = new Set<EventKind>(['pull', 'seen', 'shared']);
 

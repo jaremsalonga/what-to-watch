@@ -1,5 +1,5 @@
 import { Ratelimit, type Duration } from '@upstash/ratelimit';
-import { redisFromEnv } from './store';
+import { redisFromEnv } from './store.js';
 
 export type Rule = 'profile' | 'ip' | 'createShort' | 'createDay' | 'login' | 'event';
 

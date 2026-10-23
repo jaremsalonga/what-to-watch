@@ -1,8 +1,8 @@
-import { clientIp, fail, isCrossSite, json, readJson, tooMany, safe } from './_lib/http';
-import { limit, limitAll } from './_lib/limits';
-import { createOrReuse, deleteProfile, sanitizeName } from './_lib/profiles';
-import { store } from './_lib/store';
-import { hashIp, profileToken, readProfile } from './_lib/token';
+import { clientIp, fail, isCrossSite, json, readJson, tooMany, safe } from './_lib/http.js';
+import { limit, limitAll } from './_lib/limits.js';
+import { createOrReuse, deleteProfile, sanitizeName } from './_lib/profiles.js';
+import { store } from './_lib/store.js';
+import { hashIp, profileToken, readProfile } from './_lib/token.js';
 
 /** POST /api/profile { name }: "What should we call you?". Returns a signed token. */
 export const POST = safe(async (req: Request): Promise<Response> => {

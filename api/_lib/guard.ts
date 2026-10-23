@@ -1,8 +1,8 @@
-import { clientIp, fail, isCrossSite, tooMany } from './http';
-import { limitAll, takeBlockedCount } from './limits';
-import { dayKey } from './profiles';
-import { store } from './store';
-import { readProfile, type ProfileToken } from './token';
+import { clientIp, fail, isCrossSite, tooMany } from './http.js';
+import { limitAll, takeBlockedCount } from './limits.js';
+import { dayKey } from './profiles.js';
+import { store } from './store.js';
+import { readProfile, type ProfileToken } from './token.js';
 
 export interface Caller {
   ip: string;
