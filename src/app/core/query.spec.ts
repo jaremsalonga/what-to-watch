@@ -56,8 +56,17 @@ describe('buildQuery', () => {
     expect(q.params).toMatchObject({ from: '2015-01-01', to: '2026-10-23' });
   });
 
-  it('Show everything drops the service filter', () => {
-    expect(buildQuery(f(), { ...ctx, showAll: true }).params['providers']).toBeUndefined();
+  it('Any service keeps titles streaming somewhere in the region', () => {
+    const q = buildQuery(f(), { ...ctx, showAll: true });
+    expect(q.params['providers']).toBeUndefined();
+    expect(q.params).toMatchObject({ streaming: '1', region: 'PH' });
+    expect(buildQuery(f(), { ...ctx, services: [] }).params['streaming']).toBe('1');
+  });
+
+  it('Anywhere drops every availability filter', () => {
+    const q = buildQuery(f({ streamOnly: false }), { ...ctx, showAll: true });
+    expect(q.params['providers']).toBeUndefined();
+    expect(q.params['streaming']).toBeUndefined();
   });
 
   it('gives identical filters the same cache key', () => {

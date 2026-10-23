@@ -98,6 +98,9 @@ export function discoverParams(q: URLSearchParams): DiscoverRequest {
     p['with_watch_providers'] = providers;
     p['watch_region'] = region(q.get('region'));
     p['with_watch_monetization_types'] = 'flatrate|free|ads';
+  } else if (q.get('streaming') === '1') {
+    p['watch_region'] = region(q.get('region'));
+    p['with_watch_monetization_types'] = 'flatrate|free|ads';
   }
   return { type, params: p };
 }

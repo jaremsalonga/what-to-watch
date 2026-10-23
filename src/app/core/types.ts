@@ -84,6 +84,8 @@ export interface Filters {
   /** Custom year range; overrides the presets when set. */
   years: { from: number; to: number } | null;
   minRating: number;
+  /** Without picked services (or with "show everything"), still require streaming in the region. */
+  streamOnly: boolean;
 }
 
 export const DEFAULT_FILTERS: Filters = {
@@ -96,6 +98,7 @@ export const DEFAULT_FILTERS: Filters = {
   release: [],
   years: null,
   minRating: 0,
+  streamOnly: true,
 };
 
 export const POSTER = (path: string | null, size: 'w92' | 'w185' | 'w342' | 'w500' = 'w185') =>

@@ -25,7 +25,7 @@ Playful, cinematic, quick. An old cinema ticket booth at night: lit marquee, pro
 ## Design Principles
 
 1. The roll is the product. The Roll film button is always one tap away.
-2. Moods and minutes first; genres and dates live behind "Genres" and "More filters".
+2. Moods and minutes first; genres, dates, rating and where to watch live in one Filters sheet.
 3. Only suggest what people can actually watch (their services, their country).
 4. One main action per ticket.
 5. Labels say exactly what happens.

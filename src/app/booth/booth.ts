@@ -12,12 +12,18 @@ import { RouterLink } from '@angular/router';
 import { ApiError, BusyError, OfflineError, Api } from '../core/api';
 import { MOODS, MOVIE_GENRES, RELEASES, TIMES } from '../core/moods';
 import { NothingFound, Picker } from '../core/picker';
+import { Sound } from '../core/sound';
 import { AppState } from '../core/state';
 import type { Genre, Mood, ReleasePreset, TimeChoice, TypeChoice } from '../core/types';
 import { FilmStrip } from '../film-strip/film-strip';
 import { Ticket } from '../ticket/ticket';
 
-type Panel = 'genres' | 'more' | null;
+/** One active "refine" filter, shown as a removable chip under the quick filters. */
+interface ActiveFilter {
+  key: string;
+  label: string;
+  remove: () => void;
+}
 
 @Component({
   selector: 'app-booth',
@@ -27,12 +33,14 @@ type Panel = 'genres' | 'more' | null;
 })
 export class Booth implements OnInit, OnDestroy {
   protected readonly state = inject(AppState);
+  protected readonly sound = inject(Sound);
   private readonly api = inject(Api);
   private readonly picker = inject(Picker);
   private readonly strip = viewChild.required(FilmStrip);
-  private readonly ticketEl = viewChild<ElementRef<HTMLElement>>('ticketAnchor');
+  private readonly sheet = viewChild.required<ElementRef<HTMLDialogElement>>('sheet');
+  private readonly reveal = viewChild.required<ElementRef<HTMLDialogElement>>('reveal');
 
-  protected readonly moods = MOODS;
+  protected readonly moods = MOODS.filter((m) => m.id !== 'surprise');
   protected readonly times = TIMES;
   protected readonly releases = RELEASES;
   protected readonly types: { id: TypeChoice; label: string }[] = [
@@ -40,12 +48,14 @@ export class Booth implements OnInit, OnDestroy {
     { id: 'tv', label: 'Series' },
     { id: 'both', label: 'Both' },
   ];
+  protected readonly ratings = [0, 6, 7, 8];
   protected readonly genreList = signal<Genre[]>(MOVIE_GENRES);
-  protected readonly panel = signal<Panel>(null);
-  protected readonly genreMode = signal<'pick' | 'block'>('pick');
   protected readonly rolling = signal(false);
+  protected readonly showTicket = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly busyFor = signal(0);
+  /** "Roll again" on a hidden gem rolls another hidden gem. */
+  private lastWasSurprise = false;
   private busyTimer: ReturnType<typeof setInterval> | null = null;
 
   protected readonly f = this.state.filters;
@@ -55,22 +65,69 @@ export class Booth implements OnInit, OnDestroy {
     (_, i) => new Date().getFullYear() - i,
   );
 
-  protected readonly genreCount = computed(() => this.f().genres.length + this.f().blocked.length);
-  protected readonly moreCount = computed(
-    () => this.f().release.length + (this.f().years ? 1 : 0) + (this.f().minRating ? 1 : 0),
-  );
   protected readonly cinemasOnly = computed(
     () => this.f().release.length === 1 && this.f().release[0] === 'cinemas',
   );
+  /** Where picks must be watchable: the viewer's services, any streaming service, or anywhere. */
+  protected readonly availability = computed<'mine' | 'streaming' | 'any'>(() =>
+    this.state.services().length && !this.state.showAll()
+      ? 'mine'
+      : this.f().streamOnly
+        ? 'streaming'
+        : 'any',
+  );
   protected readonly servicesLine = computed(() => {
+    const region = this.state.region();
     if (this.cinemasOnly()) return 'Showing films in cinemas near you';
-    if (this.state.showAll() || !this.state.services().length)
-      return `Everything on TMDB · ${this.state.region()}`;
-    const n = this.state.services().length;
-    return `From your ${n} service${n > 1 ? 's' : ''} in ${this.state.region()}`;
+    if (this.availability() === 'mine') {
+      const n = this.state.services().length;
+      return `Streaming on your ${n} service${n > 1 ? 's' : ''} in ${region}`;
+    }
+    if (this.availability() === 'streaming') return `Streaming on any service in ${region}`;
+    return 'Everything, streaming or not';
+  });
+
+  /** Everything set inside the Filters sheet, as removable chips. */
+  protected readonly active = computed<ActiveFilter[]>(() => {
+    const f = this.f();
+    const name = (id: number) => this.genreList().find((g) => g.id === id)?.name ?? 'Genre';
+    const out: ActiveFilter[] = [];
+    for (const id of f.genres)
+      out.push({
+        key: `g${id}`,
+        label: name(id),
+        remove: () => this.setGenre(id, 'off'),
+      });
+    for (const id of f.blocked)
+      out.push({
+        key: `b${id}`,
+        label: `No ${name(id).toLowerCase()}`,
+        remove: () => this.setGenre(id, 'off'),
+      });
+    for (const r of f.release)
+      out.push({
+        key: `r${r}`,
+        label: RELEASES.find((x) => x.id === r)?.label ?? r,
+        remove: () => this.toggleRelease(r),
+      });
+    if (f.years)
+      out.push({
+        key: 'years',
+        label: f.years.from === f.years.to ? `${f.years.from}` : `${f.years.from}–${f.years.to}`,
+        remove: () => this.state.patchFilters({ years: null }),
+      });
+    if (f.minRating)
+      out.push({
+        key: 'rating',
+        label: `${f.minRating}★ and up`,
+        remove: () => this.state.patchFilters({ minRating: 0 }),
+      });
+    return out;
   });
 
   ngOnInit() {
+    // "Surprise me" used to be a mood; it is a separate button now.
+    if (this.f().mood === 'surprise') this.state.patchFilters({ mood: null });
     this.api
       .genres('movie')
       .then((r) => r.genres.length && this.genreList.set(r.genres))
@@ -79,19 +136,33 @@ export class Booth implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.busyTimer) clearInterval(this.busyTimer);
+    this.sound.stopMusic(0.1);
   }
 
   protected setMood(m: Mood) {
     this.state.patchFilters({ mood: this.f().mood === m ? null : m });
   }
-  protected setTime(t: TimeChoice) {
-    this.state.patchFilters({ time: t });
+  protected setTime(t: string) {
+    this.state.patchFilters({ time: t as TimeChoice });
   }
   protected setType(t: TypeChoice) {
     this.state.patchFilters({ type: t });
   }
-  protected toggle(p: Exclude<Panel, null>) {
-    this.panel.set(this.panel() === p ? null : p);
+
+  protected setAvailability(a: 'mine' | 'streaming' | 'any') {
+    this.state.showAll.set(a !== 'mine');
+    this.state.patchFilters({ streamOnly: a !== 'any' });
+  }
+
+  protected openFilters() {
+    this.sheet().nativeElement.showModal();
+  }
+  protected closeFilters() {
+    this.sheet().nativeElement.close();
+  }
+  /** Taps on the dimmed backdrop (the dialog element itself) close it. */
+  protected backdrop(e: MouseEvent, dialog: HTMLDialogElement) {
+    if (e.target === dialog) dialog.close();
   }
 
   protected genreState(id: number): 'on' | 'blocked' | 'off' {
@@ -99,22 +170,20 @@ export class Booth implements OnInit, OnDestroy {
     if (this.f().blocked.includes(id)) return 'blocked';
     return 'off';
   }
+  /** One tap: want it. Second tap: never show it. Third tap: back to neutral. */
   protected tapGenre(id: number) {
-    const { genres, blocked } = this.f();
-    if (this.genreMode() === 'pick') {
-      this.state.patchFilters({
-        genres: genres.includes(id) ? genres.filter((g) => g !== id) : [...genres, id],
-        blocked: blocked.filter((g) => g !== id),
-      });
-    } else {
-      this.state.patchFilters({
-        blocked: blocked.includes(id) ? blocked.filter((g) => g !== id) : [...blocked, id],
-        genres: genres.filter((g) => g !== id),
-      });
-    }
+    const next = { off: 'on', on: 'blocked', blocked: 'off' } as const;
+    this.setGenre(id, next[this.genreState(id)]);
   }
-  protected clearGenres() {
-    this.state.patchFilters({ genres: [], blocked: [], match: 'any' });
+  private setGenre(id: number, to: 'on' | 'blocked' | 'off') {
+    const { genres, blocked } = this.f();
+    const g = genres.filter((x) => x !== id);
+    const b = blocked.filter((x) => x !== id);
+    this.state.patchFilters({
+      genres: to === 'on' ? [...g, id] : g,
+      blocked: to === 'blocked' ? [...b, id] : b,
+      ...(g.length + (to === 'on' ? 1 : 0) < 2 ? { match: 'any' as const } : {}),
+    });
   }
 
   protected toggleRelease(r: ReleasePreset) {
@@ -133,20 +202,48 @@ export class Booth implements OnInit, OnDestroy {
     }
     this.state.patchFilters({ years: { from: Math.min(a, b), to: Math.max(a, b) }, release: [] });
   }
-  protected clearMore() {
-    this.state.patchFilters({ release: [], years: null, minRating: 0 });
+  protected resetFilters() {
+    this.state.patchFilters({
+      genres: [],
+      blocked: [],
+      match: 'any',
+      release: [],
+      years: null,
+      minRating: 0,
+    });
   }
 
-  async roll() {
+  protected openTicket() {
+    const d = this.reveal().nativeElement;
+    if (!d.open) d.showModal();
+    this.showTicket.set(true);
+  }
+  protected closeTicket() {
+    const d = this.reveal().nativeElement;
+    if (d.open) d.close();
+    this.showTicket.set(false);
+  }
+
+  async roll(surprise = false) {
     if (this.rolling() || this.busyFor() > 0) return;
+    this.closeTicket();
     this.message.set(null);
-    this.panel.set(null);
     this.rolling.set(true);
+    this.lastWasSurprise = surprise;
+    this.sound.startMusic();
     try {
-      const result = await this.picker.pull();
+      const result = await this.strip().countdown(this.picker.pull(Math.random, surprise), () =>
+        this.sound.beep(),
+      );
       const w = result.winner;
       const details = this.api.title(w.type, w.id, this.state.region()).catch(() => null);
-      await this.strip().run(result.reel);
+      await this.strip().run(result.reel, () => {
+        this.sound.tick();
+        navigator.vibrate?.(4);
+      });
+      this.sound.stopMusic();
+      this.sound.ding();
+      navigator.vibrate?.([20, 40, 30]);
       const number = this.state.pulls() + 1;
       this.state.pulls.set(number);
       this.state.last.set({
@@ -157,25 +254,28 @@ export class Booth implements OnInit, OnDestroy {
         number,
       });
       this.api.event('pull');
-      queueMicrotask(() =>
-        this.ticketEl()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-      );
+      this.openTicket();
       const d = await details;
       const cur = this.state.last();
       if (d && cur && cur.title.id === w.id) this.state.last.set({ ...cur, details: d });
     } catch (e) {
+      this.sound.stopMusic(0.2);
       this.showError(e);
     } finally {
       this.rolling.set(false);
     }
   }
 
+  protected again() {
+    this.roll(this.lastWasSurprise);
+  }
+
   private showError(e: unknown) {
     if (e instanceof NothingFound) {
       this.message.set(
-        this.state.showAll() || !this.state.services().length
-          ? 'Nothing matches all of these filters. Try removing one.'
-          : 'Nothing matches these filters on your services. Try removing a filter, or turn on "Show everything" in Settings.',
+        this.availability() === 'mine'
+          ? 'Nothing matches these filters on your services. Try removing a filter, or choose "Any service" under Filters.'
+          : 'Nothing matches all of these filters. Try removing one.',
       );
     } else if (e instanceof BusyError) {
       this.startBusy(e.retryAfter);
@@ -204,14 +304,14 @@ export class Booth implements OnInit, OnDestroy {
   protected skip() {
     const l = this.last();
     if (l) this.picker.skipped.add(`${l.title.type}:${l.title.id}`);
-    this.roll();
+    this.again();
   }
   protected seen() {
     const l = this.last();
     if (!l) return;
     this.state.markSeen(stub(l.title));
     this.api.event('seen');
-    this.roll();
+    this.again();
   }
   protected later() {
     const l = this.last();

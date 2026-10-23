@@ -23,8 +23,10 @@ export class Picker {
   /** "Not this one" for this visit. */
   readonly skipped = new Set<string>();
 
-  async pull(random = Math.random): Promise<PullResult> {
-    const query = buildQuery(this.state.filters(), {
+  /** `surprise` rolls a hidden gem with the current filters, without changing the mood. */
+  async pull(random = Math.random, surprise = false): Promise<PullResult> {
+    const filters = this.state.filters();
+    const query = buildQuery(surprise ? { ...filters, mood: 'surprise' } : filters, {
       region: this.state.region(),
       services: this.state.services(),
       showAll: this.state.showAll(),

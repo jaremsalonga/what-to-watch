@@ -114,6 +114,10 @@ export function buildQuery(f: Filters, ctx: QueryContext): PullQuery {
   if (!cinemas && !ctx.showAll && ctx.services.length) {
     p['providers'] = ctx.services.join('|');
     p['region'] = ctx.region;
+  } else if (!cinemas && f.streamOnly) {
+    // Any subscription, free or ad-supported service in the viewer's country.
+    p['streaming'] = '1';
+    p['region'] = ctx.region;
   }
 
   const key = Object.keys(p)

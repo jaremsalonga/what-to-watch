@@ -40,8 +40,9 @@ import { POSTER, type Provider } from '../core/types';
         (change)="state.showAll.set($any($event.target).checked)"
       />
       <span
-        ><b>Show everything</b><br /><small
-          >Pull from all titles and just label where each one streams.</small
+        ><b>Not just my services</b><br /><small
+          >Pull from any streaming service in your country. Filters on the booth can widen it
+          further.</small
         ></span
       >
     </label>

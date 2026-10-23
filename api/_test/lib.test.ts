@@ -20,6 +20,15 @@ const req = (
 ) => new Request(url, { headers });
 
 describe('discoverParams', () => {
+  it('streaming=1 limits to subscription, free or ad titles in the region', () => {
+    const { params } = discoverParams(new URLSearchParams('type=movie&streaming=1&region=SG'));
+    expect(params).toMatchObject({
+      watch_region: 'SG',
+      with_watch_monetization_types: 'flatrate|free|ads',
+    });
+    expect(params['with_watch_providers']).toBeUndefined();
+  });
+
   it('maps the booth filters to TMDB discover parameters', () => {
     const { type, params } = discoverParams(
       q(

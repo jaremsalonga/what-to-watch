@@ -1,19 +1,5 @@
 :host {
   display: block;
-  animation: print 420ms var(--ease-out) both;
-}
-
-@keyframes print {
-  from {
-    transform: translateY(-14px);
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    transform: none;
-    opacity: 1;
-    clip-path: inset(0 0 0 0);
-  }
 }
 
 .ticket-card {
