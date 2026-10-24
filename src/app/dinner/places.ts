@@ -59,7 +59,7 @@ export const PLACES: Place[] = [
     priceMin: 99,
     priceMax: 250,
     emoji: '🔥',
-    picks: ['Chicken Inasal Paa with unli-rice', 'Pork BBQ', 'Palabok'],
+    picks: ['Chicken Inasal Paa with unlimited rice', 'Pork BBQ', 'Palabok'],
   },
   {
     id: 'greenwich',
@@ -95,7 +95,7 @@ export const PLACES: Place[] = [
     priceMin: 150,
     priceMax: 350,
     emoji: '🍱',
-    picks: ['Bento with unli-rice', 'Beef Misono', 'Tempura'],
+    picks: ['Bento with unlimited rice', 'Beef Misono', 'Tempura'],
   },
   {
     id: 'andoks',

@@ -1,13 +1,13 @@
 import { Component, computed, inject } from '@angular/core';
 import { BUDGETS, Dinner, FOOD_TYPES, typicalSpend } from './dinner';
 
-/** The dinner half of Kain + Nood: a food coupon clipped under the movie ticket. */
+/** The dinner half of dinner and a movie: a food coupon clipped under the movie ticket. */
 @Component({
   selector: 'app-dinner-coupon',
   template: `
     <section class="coupon" aria-label="Dinner pick">
       <header>
-        <span class="kicker">Dinner · Kain + Nood</span>
+        <span class="kicker">Dinner and a movie</span>
         <button
           type="button"
           class="icon-btn"

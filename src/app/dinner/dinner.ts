@@ -29,7 +29,7 @@ export const FOOD_TYPES: { id: FoodType; label: string }[] = [
 export const typicalSpend = (p: Place) => Math.round(p.priceMin + (p.priceMax - p.priceMin) / 3);
 
 /**
- * Kain + Nood: with "Dinner too" on, every roll also picks a place to eat from What to Eat's
+ * Dinner and a movie: with "Dinner too" on, every roll also picks a place to eat from What to Eat's
  * chains, shown as a coupon under the ticket with its own reroll.
  */
 @Injectable({ providedIn: 'root' })
