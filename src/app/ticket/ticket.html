@@ -63,7 +63,7 @@
         <div class="poster blank" aria-hidden="true">{{ title().title }}</div>
       }
       <div class="info">
-        <h2>{{ title().title }}</h2>
+        <h2 [class.long]="title().title.length > 26">{{ title().title }}</h2>
         <p class="meta">{{ meta() }}</p>
         @if (details()?.genres?.length) {
           <p class="genres">{{ details()!.genres.slice(0, 3).join(' · ') }}</p>
@@ -125,12 +125,12 @@
         </ul>
       } @else {
         <span class="label">Not streaming in {{ details()!.watch.region }} right now</span>
-        @if (details()!.watch.rent.length) {
+        @if (rent().length) {
           <p class="note small">
             Rent on
             {{
-              details()!
-                .watch.rent.slice(0, 2)
+              rent()
+                .slice(0, 2)
                 .map((r) => r.name)
                 .join(' or ')
             }}

@@ -118,7 +118,12 @@
     font: 900 2rem/0.92 var(--display);
     text-transform: uppercase;
     text-wrap: balance;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    /* Long titles step down a size so they don't tower over the poster or split mid-word. */
+    &.long {
+      font-size: 1.45rem;
+    }
   }
 }
 

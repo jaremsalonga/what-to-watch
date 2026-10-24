@@ -1,6 +1,7 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { serviceSearch, showtimesUrl, trailerUrl } from '../core/links';
 import { POSTER, type ProviderRef, type Title, type TitleDetails } from '../core/types';
+import { uniqueProviders } from '../core/providers';
 
 /** The printed ticket: poster, synopsis, where it streams, and what to do next. */
 @Component({
@@ -71,9 +72,11 @@ export class Ticket {
   /** Streaming services for this title, the viewer's own first. */
   protected readonly stream = computed(() => {
     const mine = new Set(this.services());
-    const list = this.details()?.watch.stream ?? [];
+    const list = uniqueProviders(this.details()?.watch.stream ?? []);
     return [...list].sort((a, b) => Number(mine.has(b.id)) - Number(mine.has(a.id)));
   });
+
+  protected readonly rent = computed(() => uniqueProviders(this.details()?.watch.rent ?? []));
 
   /** The big button, only where the pills can't do the job: showtimes, or TMDB's page. */
   protected readonly primary = computed<{ label: string; href: string } | null>(() => {
