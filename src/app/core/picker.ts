@@ -2,13 +2,18 @@ import { inject, Injectable } from '@angular/core';
 import { Api } from './api';
 import { buildQuery, type PullQuery } from './query';
 import { AppState } from './state';
-import type { Title } from './types';
+import { MOVIE_GENRES } from './moods';
+import type { Filters, Title } from './types';
+
+const MOVIE_GENRE_IDS = new Set(MOVIE_GENRES.map((g) => g.id));
 
 export interface PullResult {
   query: PullQuery;
   winner: Title;
   /** Posters for the film strip, ending with the winner. */
   reel: Title[];
+  /** The loved film this roll leaned on, if any. */
+  because?: string;
 }
 
 export class NothingFound extends Error {}
@@ -23,10 +28,34 @@ export class Picker {
   /** "Not this one" for this visit. */
   readonly skipped = new Set<string>();
 
-  /** `surprise` rolls a hidden gem with the current filters, without changing the mood. */
+  /**
+   * `surprise` rolls a hidden gem with the current filters, without changing the mood.
+   * When no genre or mood is set, half the rolls lean on a film you loved: they ask for its
+   * genres, and fall back to a normal roll if nothing matches.
+   */
   async pull(random = Math.random, surprise = false): Promise<PullResult> {
     const filters = this.state.filters();
-    const query = buildQuery(surprise ? { ...filters, mood: 'surprise' } : filters, {
+    const cinemasOnly = filters.release.length === 1 && filters.release[0] === 'cinemas';
+    const loved = this.state
+      .seen()
+      .filter((s) => s.liked && s.genres?.some((g) => MOVIE_GENRE_IDS.has(g)));
+    if (!surprise && !filters.mood && !filters.genres.length && !cinemasOnly && loved.length) {
+      if (random() < 0.5) {
+        const pick = loved[Math.floor(random() * loved.length)];
+        const genres = pick.genres!.filter((g) => MOVIE_GENRE_IDS.has(g)).slice(0, 2);
+        try {
+          const res = await this.pullWith({ ...filters, genres, match: 'all' }, random);
+          return { ...res, because: pick.title };
+        } catch (e) {
+          if (!(e instanceof NothingFound)) throw e;
+        }
+      }
+    }
+    return this.pullWith(surprise ? { ...filters, mood: 'surprise' } : filters, random);
+  }
+
+  private async pullWith(filters: Filters, random: () => number): Promise<PullResult> {
+    const query = buildQuery(filters, {
       region: this.state.region(),
       services: this.state.services(),
       showAll: this.state.showAll(),

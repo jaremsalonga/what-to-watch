@@ -28,6 +28,7 @@ import { TicketDesk } from './ticket-desk';
               [cinemas]="l.cinemas"
               [surprise]="l.surprise"
               [number]="l.number"
+              [because]="l.because ?? null"
               [isLater]="state.isLater(l.title.id, l.title.type)"
               [detailsFailed]="desk.detailsFailed()"
               (again)="rollAgain()"

@@ -44,9 +44,15 @@
                 <button type="button" class="act strong" (click)="tear(s)">Seen it · tear</button>
                 <button type="button" class="act" (click)="remove(s)">Remove</button>
               } @else {
-                <button type="button" class="act strong" (click)="shareStub(s)">
-                  Share a story
+                <button
+                  type="button"
+                  class="act love"
+                  [attr.aria-pressed]="!!s.liked"
+                  (click)="state.toggleLiked(s.id, s.type)"
+                >
+                  {{ s.liked ? '♥ Loved it' : '♡ Loved it?' }}
                 </button>
+                <button type="button" class="act strong" (click)="shareStub(s)">Share</button>
                 <button type="button" class="act" (click)="unsee(s)">Undo</button>
               }
             </div>
@@ -67,7 +73,10 @@
     </button>
   }
   @if (tab() === 'seen') {
-    <p class="note">Seen titles never come up in the booth again. Undo brings one back.</p>
+    <p class="note">
+      Tap ♡ on the ones you loved and the booth rolls more films like them. Seen titles never come
+      up again; Undo brings one back.
+    </p>
   }
 } @else {
   <div class="empty">

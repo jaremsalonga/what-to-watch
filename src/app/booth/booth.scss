@@ -217,8 +217,43 @@
   }
 }
 
+/* Kain + Nood: also pick a place to eat with every roll. */
+.dinner-toggle {
+  flex: none;
+  margin-left: auto;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  min-height: 36px;
+  padding: 0 0.75rem;
+  border: 1.5px solid var(--night-3);
+  border-radius: 999px;
+  background: var(--night-2);
+  color: var(--dim);
+  font: 600 0.78rem/1 var(--body);
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out),
+    color 150ms var(--ease-out);
+  &[aria-pressed='true'] {
+    border-color: oklch(0.88 0.09 80);
+    background: oklch(0.88 0.09 80 / 0.14);
+    color: oklch(0.88 0.09 80);
+  }
+  /* 44px tap area without making the sticky bar taller. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+}
+
 .go-meta {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   min-height: 1.4rem;
