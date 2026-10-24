@@ -36,6 +36,9 @@ export class Ticket {
   readonly retry = output<void>();
 
   protected readonly expanded = signal(false);
+  /** Apps opened from a pill drop the search, so the title goes on the clipboard to paste. */
+  protected readonly copied = signal(false);
+  private copiedTimer?: ReturnType<typeof setTimeout>;
   protected readonly today = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -107,6 +110,17 @@ export class Ticket {
     const key = this.details()?.trailer;
     return key ? trailerUrl(key) : null;
   });
+
+  protected copyTitle() {
+    navigator.clipboard
+      ?.writeText(this.title().title)
+      .then(() => {
+        this.copied.set(true);
+        clearTimeout(this.copiedTimer);
+        this.copiedTimer = setTimeout(() => this.copied.set(false), 6000);
+      })
+      .catch(() => {});
+  }
 
   protected readonly logo = (path: string | null) => POSTER(path, 'w92');
 }

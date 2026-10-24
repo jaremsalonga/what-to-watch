@@ -108,7 +108,9 @@
       } @else if (!details()) {
         <span class="label">Checking where it streams…</span>
       } @else if (stream().length) {
-        <span class="label">Stream it on · tap to open</span>
+        <span class="label" aria-live="polite">{{
+          copied() ? 'Title copied · paste it in the search' : 'Stream it on · tap to open'
+        }}</span>
         <ul class="providers">
           @for (p of stream().slice(0, 5); track p.id) {
             <li>
@@ -118,6 +120,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 [attr.aria-label]="'Open ' + title().title + ' on ' + p.name"
+                (click)="copyTitle()"
               >
                 @if (logo(p.logo); as src) {
                   <img [src]="src" alt="" width="20" height="20" />
