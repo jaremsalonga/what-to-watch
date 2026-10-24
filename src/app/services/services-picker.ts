@@ -2,6 +2,7 @@ import { Component, effect, inject, input, signal } from '@angular/core';
 import { Api } from '../core/api';
 import { AppState } from '../core/state';
 import { POSTER, type Provider } from '../core/types';
+import { subscriptionServices, WELL_KNOWN } from '../core/providers';
 
 /** Grid of streaming services for the viewer's country, plus the "Show everything" switch. */
 @Component({
@@ -31,6 +32,11 @@ import { POSTER, type Provider } from '../core/types';
         <button type="button" class="more" (click)="all.set(!all())">
           {{ all() ? 'Show fewer' : 'Show all ' + providers().length + ' services' }}
         </button>
+      }
+      @for (m of missing(); track m.id) {
+        <p class="note">
+          Can't find {{ m.name }}? Our streaming data doesn't cover it in your country yet.
+        </p>
       }
     }
     <label class="switch">
@@ -129,7 +135,7 @@ export class ServicesPicker {
       this.error.set(null);
       this.api
         .providers(region)
-        .then((r) => this.providers.set(r.providers))
+        .then((r) => this.providers.set(subscriptionServices(r.providers)))
         .catch(() =>
           this.error.set(
             "Couldn't load streaming services right now. You can still use Show everything.",
@@ -137,6 +143,12 @@ export class ServicesPicker {
         )
         .finally(() => this.loading.set(false));
     });
+  }
+
+  /** Big services the country's list leaves out, so the viewer knows why they're missing. */
+  protected missing() {
+    const ids = new Set(this.providers().map((p) => p.id));
+    return this.providers().length ? WELL_KNOWN.filter((m) => !ids.has(m.id)) : [];
   }
 
   protected shown() {
