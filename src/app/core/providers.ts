@@ -15,7 +15,7 @@ export function serviceKey(name: string): string {
 }
 
 /** TMDB lists a service once per plan (subscription, free, with ads): keep the first of each. */
-export function uniqueProviders(list: ProviderRef[]): ProviderRef[] {
+export function uniqueProviders<T extends ProviderRef>(list: T[]): T[] {
   const seen = new Set<string>();
   return list.filter((p) => {
     const keys = [`id:${p.id}`, `name:${serviceKey(p.name)}`];
@@ -24,3 +24,25 @@ export function uniqueProviders(list: ProviderRef[]): ProviderRef[] {
     return true;
   });
 }
+
+/**
+ * Stores that only rent or sell films. TMDB lists them next to the subscriptions, so "Amazon
+ * Video" sat beside "Amazon Prime Video" in the services picker like a second Prime.
+ */
+const STORES = new Set([2, 3, 7, 10, 68, 192]);
+
+/** The services picker's list: subscriptions only, each service once, Netflix Kids under Netflix. */
+export function subscriptionServices<T extends ProviderRef>(list: T[]): T[] {
+  const subs = list.filter((p) => !STORES.has(p.id) && !/\bstore$/i.test(p.name.trim()));
+  const keyed = (p: T) => serviceKey(p.name.replace(/\s+kids$/i, ''));
+  const seen = new Set<string>();
+  return uniqueProviders(subs).filter((p) => {
+    const k = keyed(p);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+/** Big services TMDB has no data for in some countries, so they can't go in the picker there. */
+export const WELL_KNOWN = [{ id: 337, name: 'Disney+' }];
