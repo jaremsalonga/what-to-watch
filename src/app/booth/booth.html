@@ -115,6 +115,14 @@
         </button>
       }
     }
+    <button
+      type="button"
+      class="dinner-toggle"
+      [attr.aria-pressed]="dinner.on()"
+      (click)="dinner.toggle()"
+    >
+      <span aria-hidden="true">🍽</span> Dinner too
+    </button>
   </div>
 </div>
 
@@ -330,6 +338,7 @@
           [cinemas]="l.cinemas"
           [surprise]="l.surprise"
           [number]="l.number"
+          [because]="l.because ?? null"
           [isLater]="state.isLater(l.title.id, l.title.type)"
           (again)="again()"
           (skip)="skip()"

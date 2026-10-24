@@ -1,17 +1,21 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { serviceSearch, showtimesUrl, trailerUrl } from '../core/links';
 import { POSTER, type ProviderRef, type Title, type TitleDetails } from '../core/types';
 import { uniqueProviders } from '../core/providers';
+import { Dinner } from '../dinner/dinner';
+import { DinnerCoupon } from '../dinner/dinner-coupon';
 
 /** The printed ticket: poster, synopsis, where it streams, and what to do next. */
 @Component({
   selector: 'app-ticket',
+  imports: [DinnerCoupon],
   templateUrl: './ticket.html',
   styleUrl: './ticket.scss',
 })
 export class Ticket {
   /** The pick from the strip (always there) plus details once they load. */
   readonly title = input.required<Title>();
+  protected readonly dinner = inject(Dinner);
   readonly details = input<TitleDetails | null>(null);
   readonly services = input<number[]>([]);
   readonly name = input<string | null>(null);
@@ -19,6 +23,8 @@ export class Ticket {
   readonly surprise = input(false);
   readonly isLater = input(false);
   readonly number = input(1);
+  /** The loved film this pick leaned on. */
+  readonly because = input<string | null>(null);
   /** Details failed to load: offer a retry and TMDB's page instead of "Checking…". */
   readonly detailsFailed = input(false);
 

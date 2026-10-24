@@ -101,5 +101,6 @@ export const stub = (t: Title): Stub => ({
   title: t.title,
   poster: t.poster,
   year: t.year,
+  genres: t.genres,
   at: Date.now(),
 });

@@ -153,6 +153,21 @@ h2 {
   text-underline-offset: 3px;
   text-decoration-color: color-mix(in oklch, var(--ticket-ink) 35%, transparent);
   cursor: pointer;
+  &.love {
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1.5px solid currentColor;
+    font-weight: 700;
+    transition:
+      background-color 150ms var(--ease-out),
+      color 150ms var(--ease-out);
+    &[aria-pressed='true'] {
+      background: oklch(0.55 0.15 40);
+      border-color: oklch(0.55 0.15 40);
+      color: oklch(0.98 0.01 80);
+    }
+  }
   &.strong {
     font-weight: 800;
   }

@@ -16,6 +16,8 @@ export interface LastPick {
   cinemas: boolean;
   surprise: boolean;
   number: number;
+  /** Set when the roll leaned on a film you loved: its title, for "Because you liked…". */
+  because?: string | null;
 }
 
 export interface Stub {
@@ -26,6 +28,10 @@ export interface Stub {
   /** When it was saved or marked seen (epoch ms). */
   at: number;
   year?: number | null;
+  /** Genre ids, kept so loved films can steer future rolls. */
+  genres?: number[];
+  /** Marked "Loved it" on its torn stub. */
+  liked?: boolean;
 }
 
 export interface SavedProfile {
@@ -115,6 +121,11 @@ export class AppState {
   }
   unsee(id: number, type: MediaType) {
     this.seen.update((l) => l.filter((s) => !(s.id === id && s.type === type)));
+  }
+  toggleLiked(id: number, type: MediaType) {
+    this.seen.update((l) =>
+      l.map((s) => (s.id === id && s.type === type ? { ...s, liked: !s.liked } : s)),
+    );
   }
   toggleLater(t: Stub) {
     this.later.update((list) =>

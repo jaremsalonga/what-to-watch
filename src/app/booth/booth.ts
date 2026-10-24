@@ -18,6 +18,7 @@ import type { Genre, Mood, ReleasePreset, TimeChoice, TypeChoice } from '../core
 import { FilmStrip } from '../film-strip/film-strip';
 import { Ticket } from '../ticket/ticket';
 import { TicketDesk } from '../ticket/ticket-desk';
+import { Dinner } from '../dinner/dinner';
 
 /** One active "refine" filter, shown as a removable chip under the quick filters. */
 interface ActiveFilter {
@@ -57,6 +58,7 @@ export class Booth implements OnInit, OnDestroy {
   protected readonly message = signal<string | null>(null);
   protected readonly busyFor = signal(0);
   protected readonly desk = inject(TicketDesk);
+  protected readonly dinner = inject(Dinner);
   private destroyed = false;
   /** "Roll again" on a hidden gem rolls another hidden gem. */
   private busyTimer: ReturnType<typeof setInterval> | null = null;
@@ -282,7 +284,9 @@ export class Booth implements OnInit, OnDestroy {
         cinemas: result.query.cinemas,
         surprise: result.query.surprise,
         number,
+        because: result.because ?? null,
       });
+      this.dinner.forNewTicket();
       this.api.event('pull');
       // Left the booth mid-roll: the app shows the ticket over whatever page is open.
       if (this.destroyed) this.desk.away.set(true);

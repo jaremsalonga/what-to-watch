@@ -68,6 +68,11 @@
         @if (details()?.genres?.length) {
           <p class="genres">{{ details()!.genres.slice(0, 3).join(' · ') }}</p>
         }
+        @if (because(); as b) {
+          <p class="because">
+            ♥ Because you loved <b>{{ b }}</b>
+          </p>
+        }
       </div>
     </div>
 
@@ -156,6 +161,10 @@
 
 @if (!cinemas()) {
   <p class="credit">Streaming data by JustWatch</p>
+}
+
+@if (dinner.on()) {
+  <app-dinner-coupon />
 }
 
 <div class="actions">
